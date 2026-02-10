@@ -1,0 +1,10 @@
+{
+  "JW_001": {
+    "name": "Mteja_A",
+    "allowedPlugins": ["antilink", "tiktok"]
+  },
+  "JW_002": {
+    "name": "Mteja_B",
+    "allowedPlugins": ["antilink"]
+  }
+}
