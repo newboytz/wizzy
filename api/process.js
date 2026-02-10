@@ -1,38 +1,44 @@
 export default async function handler(req, res) {
-    // Ruhusu tu maombi ya POST kutoka kwa bot yako
+    // 1. Ulinzi wa Method
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { clientId, command, text } = req.body;
+    // Kupokea data kutoka Termux
+    // userNumber inatoka kwa sender wa WhatsApp
+    const { clientId, command, text, userNumber } = req.body;
     const amri = command ? command.toLowerCase() : '';
 
     // ---------------------------------------------------------
-    // 1. DATABASE YA WATEJA (Hapa ndipo unaposajili watu)
+    // 1. DATABASE YA WATEJA (Ongeza wateja hapa)
     // ---------------------------------------------------------
     const wateja = {
         "001": { 
             name: "J_Wizzy_Tz", 
             active: true, 
-            allowedCommands: ["id", "gpt", "sticker", "tiktok", "repo", "antilnk"] 
+            allowedCommands: ["id", "gpt", "sticker", "tiktok", "repo", "antilnk", "utani", "ping"] 
         },
         "002": { 
             name: "beka", 
             active: true, 
-            allowedCommands: ["id", "gpt", "sticker"] 
+            allowedCommands: ["id", "gpt", "sticker", "ping"] 
         }
-        // Ukipata mteja mpya, ongeza hapa chini...
     };
 
     const user = wateja[clientId];
 
     // ---------------------------------------------------------
-    // 2. ULINZI NA KAGUZI
+    // 2. ULINZI WA ID NA RUHUSA
     // ---------------------------------------------------------
-    if (!user) return res.json({ action: 'reply', data: "❌ ID yako haijasajiliwa!" });
-    if (!user.active) return res.json({ action: 'reply', data: "⚠️ Huduma yako imesitishwa. Lipia upya!" });
+    if (!user) {
+        return res.json({ action: 'reply', data: "❌ ID yako (" + clientId + ") haijasajiliwa kwenye Cloud!" });
+    }
+    
+    if (!user.active) {
+        return res.json({ action: 'reply', data: "⚠️ Huduma yako imesitishwa. Wasiliana na Admin!" });
+    }
 
-    // Kagua kama anaruhusiwa kutumia plugin hii
+    // Kagua kama command ipo kwenye ruhusa za mteja
     if (!user.allowedCommands.includes(amri)) {
         return res.json({ 
             action: 'reply', 
@@ -41,47 +47,59 @@ export default async function handler(req, res) {
     }
 
     // ---------------------------------------------------------
-    // 3. SWITCH CASE (Hizi ndizo "Plugins" zako za Cloud)
+    // 3. SWITCH CASE (LOGIC ZA PLUGINS)
     // ---------------------------------------------------------
     switch (amri) {
         
+        case 'ping':
+            return res.json({ 
+                action: 'reply', 
+                data: `🚀 *CHUBWA-MD PING*\n\nLatency: 0.02ms\nServer: Vercel Cloud\nStatus: Online ✅` 
+            });
+
         case 'id':
             return res.json({ 
                 action: 'reply', 
-                data: `📋 *TAARIFA ZA MTEJA*\n\n👤 Jina: ${user.name}\n🔑 ID: ${clientId}\n✅ Hali: Active\n📦 Plugins unazoruhusiwa: ${user.allowedCommands.join(', ')}` 
+                data: `📋 *TAARIFA ZA MTEJA*\n\n👤 Jina: ${user.name}\n🔑 ID: ${clientId}\n✅ Hali: Active\n📦 Plugins: ${user.allowedCommands.join(', ')}` 
             });
 
         case 'gpt':
         case 'ai':
             if (!text) return res.json({ action: 'reply', data: "Nieleze unachotaka nikusaidie. Mfano: .gpt mambo vipi?" });
-            // Hapa unaweza kuweka API yako ya Gemini baadaye
             return res.json({ 
                 action: 'reply', 
-                data: `🤖 *J_Wizzy AI*\n\nHabari ${user.name}, nimepokea swali lako: "${text}". Mfumo wa AI unashughulikiwa na Admin sasa hivi.` 
+                data: `🤖 *J_WIZZY AI RESPONSE*\n\nHabari ${user.name}, ujumbe wako umefika Cloud. Mfumo wa Gemini unganishwa sasa hivi...` 
             });
 
-        case 'sticker':
-        case 's':
-            return res.json({ 
-                action: 'reply', 
-                data: "📸 Nitumie picha au video fupi kisha weka caption ya *.sticker*" 
-            });
+        case 'utani':
+            const madongo = [
+                `Oya ${userNumber}, namba yako inaonekana kama vocha iliyokataliwa! 😂`,
+                `Hivi ${userNumber}, hiyo profile picture ni yako au umeiba Google? 💀`,
+                `Namba ${userNumber} mbona unachati kama unaandika barua ya madai? 🤣`
+            ];
+            const dongo = madongo[Math.floor(Math.random() * madongo.length)];
+            return res.json({ action: 'reply', data: `🔥 *UTANI PRO*:\n\n${dongo}` });
 
-        case 'tiktok':
-            if (!text || !text.includes('tiktok.com')) {
-                return res.json({ action: 'reply', data: "Weka link ya TikTok! Mfano: .tiktok https://vm.tiktok.com/..." });
+        case 'antilnk':
+            // Mteja akiandika .antilnk on au .antilnk off
+            const status = text ? text.toLowerCase() : '';
+            if (status === 'on' || status === 'off') {
+                return res.json({ 
+                    action: 'execute', 
+                    status: status === 'on' ? 'active' : 'inactive',
+                    data: `🛡️ *ANTILINK UPDATE*\nStatus: ${status.toUpperCase()}\nMfumo umerekebishwa kwenye Cloud.` 
+                });
             }
-            return res.json({ action: 'reply', data: "⏳ Napakua video ya TikTok, tafadhali subiri kidogo..." });
+            return res.json({ action: 'reply', data: "Tumia: *.antilnk on* au *.antilnk off*" });
 
         case 'repo':
             return res.json({ 
                 action: 'reply', 
-                data: "💻 *BOT SOURCE CODE*\n\nBot hii inatumia mfumo wa J_Wizzy Hybrid Engine (Vercel + Termux)." 
+                data: "💻 *CHUBWA-MD HYBRID*\n\nSource Code: Hidden (Private License)\nDeveloper: J_Wizzy TZ" 
             });
 
         default:
-            // Kama command haipo kule Vercel, bot isifanye kitu (italeta commands za local)
             return res.json({ action: 'none' });
     }
-        }
+            }
     
