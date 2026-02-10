@@ -1,10 +1,12 @@
 {
-  "JW_001": {
-    "name": "Mteja_A",
-    "allowedPlugins": ["antilink", "tiktok"]
+  "001": {
+    "name": "J_Wizzy_Tz",
+    "plan": "Owner/Developer",
+    "allowedPlugins": ["antilink", "tiktok", "ai", "ytdl", "football"]
   },
-  "JW_002": {
+  "002": {
     "name": "Mteja_B",
+    "plan": "Basic",
     "allowedPlugins": ["antilink"]
   }
 }
