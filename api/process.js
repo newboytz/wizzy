@@ -14,7 +14,7 @@ export default async function handler(req, res) {
         "001": { 
             name: "J_Wizzy_Tz", 
             active: true, 
-            allowedCommands: ["id", "gpt", "sticker", "tiktok", "repo"] 
+            allowedCommands: ["id", "gpt", "sticker", "tiktok", "repo", "antilnk"] 
         },
         "002": { 
             name: "beka", 
