@@ -1,0 +1,15 @@
+{
+  "ai": {
+    "gemini": "AIzaSyDWFobSj9WwKIS36BprUYainsyIG0AULCQ",
+    "openai": "sk-XXXXXXXXXXXXXXXXXXXX"
+  },
+  "tiktok": {
+    "apiKey": "TT-API-XXXXXXX"
+  },
+  "ytdl": {
+    "apiKey": "YTDL-API-XXXXXXX"
+  },
+  "football": {
+    "apiKey": "FOOTBALL-API-XXXXXXX"
+  }
+}
