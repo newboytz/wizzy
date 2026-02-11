@@ -1,0 +1,10 @@
+{
+  "001": {
+    "name": "J_Wizzy_Tz",
+    "plan": "Owner/Developer",
+    "expiry": "2030-12-31",
+    "allowedPlugins": [
+      "antilink", "tiktok", "ai", "ytdl", "football", "menu"
+    ]
+  }
+}
