@@ -1,42 +1,60 @@
-import registry from '../registry.json';
-import apiKeys from '../apikeys.json';
-import path from 'path';
+import registry from '../database/registry.json';
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Denied' });
-
-  const { clientId, body, sender, chat, isGroup, isAdmin, isBotAdmin } = req.body;
-  const text = body ? body.toLowerCase().trim() : "";
-
-  const client = registry[clientId];
-  if (!client) return res.json({ action: 'reply', text: "❌ Bot haijasajiliwa!" });
-
-  // License expiry
-  if (new Date(client.expiry) < new Date()) return res.json({ action: 'reply', text: "❌ License expired!" });
-
-  try {
-    // Antilink plugin
-    if (isGroup && client.allowedPlugins.includes("antilink")) {
-      const antilink = require('../plugins/antilink.js');
-      const result = await antilink(body, sender, isAdmin, isBotAdmin, client);
-      if (result) return res.json(result);
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Denied' });
     }
 
-    // Other commands
-    if (text.startsWith('.')) {
-      const cmd = text.slice(1).split(' ')[0];
-      if (client.allowedPlugins.includes(cmd)) {
-        const plugin = require(`../plugins/${cmd}.js`);
-        const response = await plugin({ body, sender, chat, isGroup, isAdmin, isBotAdmin, client, apiKeys });
-        return res.json(response);
-      } else {
-        return res.json({ action: 'reply', text: `🚫 Huna ruhusa ya: ${cmd}` });
-      }
+    const { clientId, body, sender, isGroup, isAdmin, isBotAdmin } = req.body;
+    const text = body ? body.toLowerCase().trim() : "";
+
+    // DEBUG LOG
+    console.log("CLIENT ID:", clientId);
+    console.log("TEXT:", text);
+
+    const client = registry[clientId];
+
+    if (!client) {
+        return res.json({ action: 'reply', text: "❌ Bot haijasajiliwa!" });
     }
-  } catch (e) {
-    console.log('🔥 Handler Error:', e.message);
+
+    console.log("ALLOWED:", client.allowedPlugins);
+
+    try {
+        if (text.startsWith('.')) {
+            const cmd = text.split(' ')[0].replace('.', '');
+
+            console.log("COMMAND:", cmd);
+
+            if (client.allowedPlugins.includes(cmd)) {
+                try {
+                    const plugin = require(`../plugins/${cmd}.js`);
+                    const response = await plugin(body, sender, client);
+
+                    if (response) {
+                        return res.json(response);
+                    } else {
+                        return res.json({
+                            action: 'reply',
+                            text: '⚠️ Plugin returned nothing'
+                        });
+                    }
+                } catch (e) {
+                    return res.json({
+                        action: 'reply',
+                        text: `❌ Plugin load error: ${cmd}`
+                    });
+                }
+            } else {
+                return res.json({
+                    action: 'reply',
+                    text: `🚫 Huna ruhusa ya: ${cmd}`
+                });
+            }
+        }
+    } catch (e) {
+        return res.json({ action: 'reply', text: '❌ Server error' });
+    }
+
     return res.json({ action: 'none' });
-  }
-
-  return res.json({ action: 'none' });
-                                }
+                         }
