@@ -8,41 +8,36 @@ export default async function handler(req, res) {
     const { clientId, body, sender, isGroup, isAdmin, isBotAdmin } = req.body;
     const text = body ? body.toLowerCase().trim() : "";
 
-    // DEBUG LOG
-    console.log("CLIENT ID:", clientId);
-    console.log("TEXT:", text);
-
     const client = registry[clientId];
-
     if (!client) {
         return res.json({ action: 'reply', text: "❌ Bot haijasajiliwa!" });
     }
 
-    console.log("ALLOWED:", client.allowedPlugins);
-
     try {
+        // ANTILINK
+        if (isGroup && client.allowedPlugins.includes("antilink")) {
+            const antilinkModule = await import('../plugins/antilink.js');
+            const antilink = antilinkModule.default || antilinkModule;
+
+            const result = await antilink(body, sender, isAdmin, isBotAdmin, client);
+            if (result) return res.json(result);
+        }
+
+        // COMMANDS
         if (text.startsWith('.')) {
             const cmd = text.split(' ')[0].replace('.', '');
 
-            console.log("COMMAND:", cmd);
-
             if (client.allowedPlugins.includes(cmd)) {
                 try {
-                    const plugin = require(`../plugins/${cmd}.js`);
-                    const response = await plugin(body, sender, client);
+                    const pluginModule = await import(`../plugins/${cmd}.js`);
+                    const plugin = pluginModule.default || pluginModule;
 
-                    if (response) {
-                        return res.json(response);
-                    } else {
-                        return res.json({
-                            action: 'reply',
-                            text: '⚠️ Plugin returned nothing'
-                        });
-                    }
+                    const response = await plugin(body, sender, client);
+                    if (response) return res.json(response);
                 } catch (e) {
                     return res.json({
                         action: 'reply',
-                        text: `❌ Plugin load error: ${cmd}`
+                        text: `❌ Plugin error: ${cmd}`
                     });
                 }
             } else {
@@ -57,4 +52,4 @@ export default async function handler(req, res) {
     }
 
     return res.json({ action: 'none' });
-                         }
+                }
