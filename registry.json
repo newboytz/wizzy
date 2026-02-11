@@ -2,15 +2,13 @@
   "001": {
     "name": "J_Wizzy_Tz",
     "plan": "Owner/Developer",
-    "allowedPlugins": ["antilink","tiktok","ai","ytdl","football","menu"],
-    "expiry": "2027-12-31",
-    "phone": "255775923311"
-  },
-  "002": {
-    "name": "Mteja_B",
-    "plan": "Basic",
-    "allowedPlugins": ["antilink"],
-    "expiry": "2026-12-31",
-    "phone": "2557XXXXXXX"
+    "allowedPlugins": [
+      "antilink",
+      "tiktok",
+      "ai",
+      "ytdl",
+      "football",
+      "menu"
+    ]
   }
 }
