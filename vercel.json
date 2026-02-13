@@ -1,6 +1,14 @@
 {
+  "version": 2,
   "rewrites": [
-    { "source": "/plugins/(.*)", "destination": "/plugins/$1" }
+    { 
+      "source": "/api/verify", 
+      "destination": "/api/verify.js" 
+    },
+    { 
+      "source": "/plugins/(.*)", 
+      "destination": "/plugins/$1" 
+    }
   ],
   "headers": [
     {
@@ -8,6 +16,13 @@
       "headers": [
         { "key": "Content-Type", "value": "text/plain" },
         { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,OPTIONS" }
       ]
     }
   ]
