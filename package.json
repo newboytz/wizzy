@@ -1,0 +1,16 @@
+{
+  "name": "plugins-bot-api",
+  "version": "1.0.0",
+  "description": "Mfumo wa kusimamia wateja na siri za bot",
+  "main": "api/verify.js",
+  "scripts": {
+    "start": "node api/verify.js"
+  },
+  "dependencies": {
+    "mongoose": "^8.0.0",
+    "axios": "^1.6.0"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
