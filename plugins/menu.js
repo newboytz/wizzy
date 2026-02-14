@@ -1,9 +1,8 @@
+// ================= MENU PLUGIN =================
 module.exports = {
     command: "menu",
     run: async (sock, m, { clientPerms, config, localDB, text }) => {
-
-        const os = require('os');
-
+        const os = require("os");
         const chat = m.key.remoteJid;
         const prefix = config.prefix;
 
@@ -44,16 +43,16 @@ module.exports = {
         };
 
         const isOwner = config.ownerNumber.some(num => chat.includes(num));
-        const userPermissions = clientPerms.plugins || [];
+        const userPermissions = clientPerms.allowedPlugins || [];
 
-        let dynamicMenu = `*╭━ 𖤍〔 ${botName.toUpperCase()}〕𖤍*
-*┃ 👑 OWNER* : ${displayOwnerName}
-*┃ 🕹️ PREFIX* : [ ${prefix} ]
-*┃ 📟 HOST* : ${getHost()}
-*┃ 🧩 PLUGINS* : ${userPermissions.length}
-*┃ 💾 RAM* : ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}MB
-*┃ ⏳ UPTIME* : ${runtime(process.uptime())}
-*╰━⬣*\n`;
+        let dynamicMenu = `*╭━ 𖤍〔 ${botName.toUpperCase()}〕𖤍*\n`;
+        dynamicMenu += `*┃ 👑 OWNER* : ${displayOwnerName}\n`;
+        dynamicMenu += `*┃ 🕹️ PREFIX* : [ ${prefix} ]\n`;
+        dynamicMenu += `*┃ 📟 HOST* : ${getHost()}\n`;
+        dynamicMenu += `*┃ 🧩 PLUGINS* : ${userPermissions.length}\n`;
+        dynamicMenu += `*┃ 💾 RAM* : ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}MB\n`;
+        dynamicMenu += `*┃ ⏳ UPTIME* : ${runtime(process.uptime())}\n`;
+        dynamicMenu += `*╰━⬣*\n`;
 
         // Loop categories
         for (const [category, commands] of Object.entries(menuCategories)) {
