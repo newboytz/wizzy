@@ -1,17 +1,14 @@
 module.exports = {
     command: "menu",
-    run: async (sock, m, { userPermissions, config, localDB, text }) => {
+    run: async (sock, m, { clientPerms, config, localDB, text }) => {
 
-        // require ziko ndani ili kuepuka crash
         const os = require('os');
-        const fs = require('fs-extra');
 
         const chat = m.key.remoteJid;
         const prefix = config.prefix;
-        
-        // --- VARIABLES ZA MSINGI ---
+
         const pushName = m.pushName || "User";
-        const botName = config.botName || "ULTRA-MD";
+        const botName = config.botName || "ULTRA-PRO-MAX";
         const displayOwnerName = config.ownerName || "J_Wizzy_Tz";
 
         // --- AUTO HOST DETECTOR ---
@@ -47,6 +44,7 @@ module.exports = {
         };
 
         const isOwner = config.ownerNumber.some(num => chat.includes(num));
+        const userPermissions = clientPerms.plugins || [];
 
         let dynamicMenu = `*╭━ 𖤍〔 ${botName.toUpperCase()}〕𖤍*
 *┃ 👑 OWNER* : ${displayOwnerName}
@@ -66,13 +64,13 @@ module.exports = {
             if (filteredCmds.length > 0) {
                 dynamicMenu += `\n*╭━━*〔 *${category}* 〕━⬣\n`;
                 filteredCmds.forEach(cmd => {
-                    dynamicMenu += `*┃ 🎖️* ${cmd}\n`;
+                    dynamicMenu += `*┃ 🎖️* ${prefix}${cmd}\n`;
                 });
                 dynamicMenu += `*╰━⬣*\n`;
             }
         }
 
-        dynamicMenu += `\n*_© ${botName} - Ultimate V999.96_*`;
+        dynamicMenu += `\n*_© ${botName} - Ultimate V9.99_*`;
 
         // --- SEND MENU ---
         return sock.sendMessage(chat, {
