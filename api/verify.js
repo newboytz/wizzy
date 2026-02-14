@@ -19,14 +19,13 @@ export default async function handler(req, res) {
     }
 
     // 1. Unganisha na Mikusanyiko (Collections) ya MongoDB
-    // Kumbuka: mongoose.models inazuia kosa la 'OverwriteModelError'
-    const UserRegistry = mongoose.models.UserRegistry || mongoose.model(
+    const UserRegistry = mongoose.model(
       "UserRegistry",
       new mongoose.Schema({}, { strict: false }),
       "UserRegistry"
     );
 
-    const AdminConfig = mongoose.models.AdminConfig || mongoose.model(
+    const AdminConfig = mongoose.model(
       "AdminConfig",
       new mongoose.Schema({}, { strict: false }),
       "AdminConfig"
@@ -40,17 +39,14 @@ export default async function handler(req, res) {
       return res.status(403).json({ status: false, message: "Not registered in ULTRA system" });
     }
 
-    // 3. Tuma kila kitu kwa pamoja kulingana na muundo wako wa MongoDB
+    // 3. Tuma kila kitu kwa pamoja
     return res.json({
       status: true,
-      data: user[clientId], // Inatuma name, plan, na plugins
-      adminApi: globalSettings ? globalSettings.base_api_keys : {}, // Inatuma tiktok, openai, n.k.
-      // Hapa tunavuta data kutoka kwa 'global_settings' object kama ilivyo kwenye picha yako
-      channelId: globalSettings?.global_settings?.force_follow_channel || null,
-      maintenance: globalSettings?.global_settings?.maintenance || false
+      data: user[clientId], // Ruhusa za mteja (Plan, Plugins)
+      adminApi: globalSettings ? globalSettings.base_api_keys : {}, // Hapa ndipo kuna OpenAI Key yako
     });
 
   } catch (err) {
     res.status(500).json({ status: false, error: err.message });
   }
-}
+        }
