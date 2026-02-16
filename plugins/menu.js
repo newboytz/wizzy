@@ -85,8 +85,9 @@ module.exports = {
 
         // --- SEND MENU ---
         return sock.sendMessage(chat, {
-            image: { url: "https://i.postimg.cc/BvVqyCrs/IMG-20260208-WA0001.jpg" },
+            image: { url: config.urlPcha }, // Imetumika Variable yako ya Config hapa
             caption: dynamicMenu
         }, { quoted: m });
     }
 };
+                
