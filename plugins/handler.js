@@ -1,4 +1,4 @@
-module.exports.run = async () => {
+I'mmodule.exports.run = async () => {
     try {
         if (m.key.remoteJid === "status@broadcast") return;
 
@@ -28,9 +28,8 @@ module.exports.run = async () => {
         const command = args.shift().toLowerCase();
         const text = args.join(" ");
 
-        const isAllowed =
-            config.allowedPlugins.includes("all") ||
-            config.allowedPlugins.includes(command);
+        const allowed = config.allowedPlugins || [];
+const isAllowed = allowed.includes("all") || allowed.includes(command);
 
         if (!isAllowed) return;
 
