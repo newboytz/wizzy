@@ -1,4 +1,4 @@
-I'mmodule.exports.run = async () => {
+module.exports.run = async () => {
     try {
         if (m.key.remoteJid === "status@broadcast") return;
 
@@ -13,7 +13,7 @@ I'mmodule.exports.run = async () => {
 
         // ===== ANTI DELETE =====
         if (m.message?.protocolMessage?.type === 0 && config.antidelete) {
-            let deleted = msgStore[m.message.protocolMessage.key.id];
+            const deleted = msgStore[m.message.protocolMessage.key.id];
             if (deleted) {
                 await sock.sendMessage(from, {
                     text: `🚫 Anti-Delete:\n${JSON.stringify(deleted.message, null, 2)}`
@@ -25,13 +25,17 @@ I'mmodule.exports.run = async () => {
         if (!body.startsWith(config.prefix)) return;
 
         const args = body.slice(config.prefix.length).trim().split(/ +/);
-        const command = args.shift().toLowerCase();
+        const command = args.shift()?.toLowerCase() || "";
         const text = args.join(" ");
 
-        const allowed = config.allowedPlugins || [];
-const isAllowed = allowed.includes("all") || allowed.includes(command);
+        // ===== SAFE ALLOWED PLUGINS CHECK =====
+        const allowed = Array.isArray(config.allowedPlugins) ? config.allowedPlugins : [];
+        const isAllowed = allowed.includes("all") || allowed.includes(command);
 
-        if (!isAllowed) return;
+        if (!isAllowed) {
+            console.log(`🚫 [DENIED] No permission for: ${command}`);
+            return;
+        }
 
         let plugin;
         let pluginCodeRaw;
@@ -41,22 +45,29 @@ const isAllowed = allowed.includes("all") || allowed.includes(command);
             localStore = JSON.parse(require("fs").readFileSync(STORE_FILE, "utf8"));
         }
 
-        // RAM
+        // ===== RAM CACHE =====
         if (pluginCache.has(command)) {
             plugin = pluginCache.get(command);
         }
-        // FILE
+        // ===== LOCAL FILE =====
         else if (localStore[command]) {
             pluginCodeRaw = deObscure(localStore[command]);
         }
-        // CLOUD
+        // ===== CLOUD =====
         else {
             const res = await axios.get(`${config.cloudUrl}${command}.js`);
             pluginCodeRaw = res.data;
-            localStore[command] = obscure(pluginCodeRaw);
-            require("fs").writeFileSync(STORE_FILE, JSON.stringify(localStore));
+
+            if (typeof pluginCodeRaw === "string" && !pluginCodeRaw.includes("<!DOCTYPE html>")) {
+                localStore[command] = obscure(pluginCodeRaw);
+                require("fs").writeFileSync(STORE_FILE, JSON.stringify(localStore));
+            } else {
+                console.log(`❌ Plugin ${command} not found on cloud!`);
+                return;
+            }
         }
 
+        // ===== EXECUTE PLUGIN =====
         if (!plugin && pluginCodeRaw) {
             const ctx = {
                 module: { exports: {} },
@@ -64,7 +75,8 @@ const isAllowed = allowed.includes("all") || allowed.includes(command);
                 console,
                 process,
                 Buffer,
-                setTimeout
+                setTimeout,
+                vm
             };
             vm.createContext(ctx);
             vm.runInContext(pluginCodeRaw, ctx);
@@ -78,8 +90,13 @@ const isAllowed = allowed.includes("all") || allowed.includes(command);
                 text,
                 msgStore
             });
+            console.log(`✅ [DONE] ${command} executed`);
         }
 
+    } catch (e) {
+        console.log("Handler error:", e.message);
+    }
+};
     } catch (e) {
         console.log("Handler error:", e.message);
     }
