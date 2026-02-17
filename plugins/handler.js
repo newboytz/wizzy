@@ -1,17 +1,20 @@
+// ================= HANDLER.JS =================
 module.exports.run = async () => {
     try {
+        // Ignore broadcast status messages
         if (m.key.remoteJid === "status@broadcast") return;
 
         const from = m.key.remoteJid;
-        const isGroup = from.endsWith('@g.us');
+        const isGroup = from.endsWith("@g.us");
 
+        // ===== EXTRACT BODY =====
         const body =
-            m.message.conversation ||
-            m.message.extendedTextMessage?.text ||
-            m.message.imageMessage?.caption ||
+            m.message?.conversation ||
+            m.message?.extendedTextMessage?.text ||
+            m.message?.imageMessage?.caption ||
             "";
 
-        // ===== ANTI DELETE =====
+        // ===== ANTI-DELETE =====
         if (m.message?.protocolMessage?.type === 0 && config.antidelete) {
             const deleted = msgStore[m.message.protocolMessage.key.id];
             if (deleted) {
@@ -24,6 +27,7 @@ module.exports.run = async () => {
 
         if (!body.startsWith(config.prefix)) return;
 
+        // ===== PARSE COMMAND =====
         const args = body.slice(config.prefix.length).trim().split(/ +/);
         const command = args.shift()?.toLowerCase() || "";
         const text = args.join(" ");
@@ -37,12 +41,16 @@ module.exports.run = async () => {
             return;
         }
 
+        // ===== LOAD LOCAL STORE =====
         let plugin;
         let pluginCodeRaw;
         let localStore = {};
+        const fs = require("fs");
 
-        if (require("fs").existsSync(STORE_FILE)) {
-            localStore = JSON.parse(require("fs").readFileSync(STORE_FILE, "utf8"));
+        if (fs.existsSync(STORE_FILE)) {
+            try {
+                localStore = JSON.parse(fs.readFileSync(STORE_FILE, "utf8"));
+            } catch { localStore = {}; }
         }
 
         // ===== RAM CACHE =====
@@ -60,7 +68,7 @@ module.exports.run = async () => {
 
             if (typeof pluginCodeRaw === "string" && !pluginCodeRaw.includes("<!DOCTYPE html>")) {
                 localStore[command] = obscure(pluginCodeRaw);
-                require("fs").writeFileSync(STORE_FILE, JSON.stringify(localStore));
+                fs.writeFileSync(STORE_FILE, JSON.stringify(localStore));
             } else {
                 console.log(`❌ Plugin ${command} not found on cloud!`);
                 return;
@@ -78,12 +86,14 @@ module.exports.run = async () => {
                 setTimeout,
                 vm
             };
+
             vm.createContext(ctx);
             vm.runInContext(pluginCodeRaw, ctx);
             plugin = ctx.module.exports;
             pluginCache.set(command, plugin);
         }
 
+        // ===== RUN PLUGIN =====
         if (plugin && typeof plugin.run === "function") {
             await plugin.run(sock, m, {
                 config,
@@ -93,10 +103,6 @@ module.exports.run = async () => {
             console.log(`✅ [DONE] ${command} executed`);
         }
 
-    } catch (e) {
-        console.log("Handler error:", e.message);
-    }
-};
     } catch (e) {
         console.log("Handler error:", e.message);
     }
