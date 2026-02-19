@@ -1,69 +1,56 @@
-/**
- * PLUGIN: AI CHATBOT PRO MAX
- * Inatumia Gemini/OpenAI API kutoka MongoDB Admin Config
- */
-
-const axios = require('axios');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 module.exports = {
-    name: "ai",
-    alias: ["gpt", "chatbot"],
-    run: async (sock, m, { text, config, isOwner, adminConfig, localDB, body }) => {
-        
-        // 1. ANGALIA KAMA NI COMMAND YA KUWASHA/ZIMA CHATBOT
-        if (text.toLowerCase() === 'on') {
-            if (!isOwner) return m.reply("❌ Amri hii ni kwa mmiliki pekee!");
-            localDB.settings.chatbot = true;
-            return m.reply("✅ Chatbot imewashwa! Sasa bot itajibu kila meseji kinyama.");
-        }
-        
-        if (text.toLowerCase() === 'off') {
-            if (!isOwner) return m.reply("❌ Amri hii ni kwa mmiliki pekee!");
-            localDB.settings.chatbot = false;
-            return m.reply("❌ Chatbot imezimwa! Bot itajibu amri za prefix pekee.");
-        }
-
-        // 2. LOGIC YA AI
-        if (!text && !localDB.settings.chatbot) {
-            return m.reply("Uliza chochote, mfano: *.ai mambo vipi?* au washa chatbot kwa *.ai on*");
-        }
-
-        // Vuta Maelezo kutoka MongoDB (Yaliyowekwa na Admin)
-        const systemPrompt = adminConfig?.ai_prompts?.gemini_system || "Wewe ni msaidizi mjanja.";
-        const apiKey = adminConfig?.base_api_keys?.gemini || adminConfig?.base_api_keys?.openai;
-        const apiUrl = adminConfig?.api_urls?.openai_base || "https://api.openai.com/v1/chat/completions";
-
-        if (!apiKey || apiKey === "sk-xxx") {
-            return m.reply("❌ API Key haijapatikana! Weka API Key sahihi kule MongoDB AdminConfig.");
-        }
+    name: "chatbot",
+    run: async (sock, m, { text, localDB, adminConfig, config }) => {
+        const from = m.key.remoteJid;
 
         try {
-            // Onyesha bot inatype...
-            await sock.presenceSubscribe(m.key.remoteJid);
-            await sock.sendPresenceUpdate('composing', m.key.remoteJid);
+            // 1. CHEKI KAMA CHATBOT IPO 'ON' KWENYE LOCAL DB (database.json)
+            // Tunachungulia: db.settings.chatbot.status
+            const isChatbotOn = localDB.settings?.chatbot?.status === "on";
+            
+            // Kama ipo OFF, plugin isifanye lolote (Silent exit)
+            if (!isChatbotOn) return;
 
-            const response = await axios.post(apiUrl, {
-                model: "gpt-3.5-turbo", // Unaweza kubadili iwe gemini-pro kama API inaruhusu
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: text || body }
-                ],
-                temperature: 0.7
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json'
-                }
+            // 2. VUTA API KEY KUTOKA MONGO (adminConfig)
+            // Kama haipo Mongo, inatafuta kwenye config.js kama backup
+            const geminiKey = adminConfig?.base_api_keys?.gemini || config.geminiKey;
+
+            if (!geminiKey) {
+                console.log("⚠️ Chatbot Error: Gemini API Key haijapatikana Mongo wala Config!");
+                return;
+            }
+
+            // 3. VUTA SYSTEM PROMPT KUTOKA MONGO (adminConfig)
+            const systemPrompt = adminConfig?.ai_prompts?.chatbot_prompt || "Wewe ni msaidizi mcheshi wa WhatsApp.";
+
+            // 4. INALIZE GEMINI AI
+            const genAI = new GoogleGenerativeAI(geminiKey);
+            const model = genAI.getGenerativeModel({ 
+                model: "gemini-3-flash-preview" // Model uliyotaka
             });
 
-            const result = response.data.choices[0].message.content;
-            
-            // Jibu meseji
-            await m.reply(result.trim());
+            // 5. REACT KUONYESHA BOT INAFANYA KAZI
+            await sock.sendMessage(from, { react: { text: "🧠", key: m.key } });
 
-        } catch (e) {
-            console.error("AI Error:", e.response ? e.response.data : e.message);
-            m.reply("⚠️ Samahani, nimepata hitilafu kwenye kuunganisha akili yangu ya AI. Hakikisha API Key na URL vipo sawa.");
+            // 6. GENERATE MAJIBU
+            // Tunachanganya Prompt ya Mongo na Swali la Mtumiaji
+            const fullPrompt = `System Instructions: ${systemPrompt}\n\nUser: ${text}`;
+            
+            const result = await model.generateContent(fullPrompt);
+            const response = await result.response;
+            const replyText = response.text();
+
+            // 7. TUMA JIBU KWA MTUMIAJI
+            await sock.sendMessage(from, { 
+                text: replyText 
+            }, { quoted: m });
+
+        } catch (error) {
+            console.error("❌ Chatbot Plugin Error:", error.message);
+            // Hapa unaweza kuchagua kukaa kimya au kutuma error message
         }
     }
 };
+        
