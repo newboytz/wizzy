@@ -3,44 +3,48 @@ const path = require('path');
 
 module.exports = {
     name: "update",
-    run: async (sock, m, { isOwner, config }) => {
-        // 1. USALAMA: Ni owner pekee ndiye anayeweza ku-update bot
-        if (!isOwner) return m.reply("❌ Amri hii ni kwa mmiliki pekee!");
-
+    run: async (sock, m, { config }) => {
         try {
-            // Jina la faili la cache (Hakikisha linafanana na lile la kwenye index.js)
-            const STORE_FILE = path.join(__dirname, "../.system_data.enc"); 
+            // 1. KUSAFISHA NAMBA YA MTUMAJI (SENDER)
+            // Hii inatoa kila kitu kisicho namba (mfano @s.whatsapp.net au :1)
+            const senderNumber = m.key.participant || m.key.remoteJid;
+            const cleanSender = senderNumber.replace(/[^0-9]/g, ''); 
 
-            // 2. TUMA REACTION KUONYESHA KAZI IMEANZA
-            await sock.sendMessage(m.key.remoteJid, { react: { text: "⏳", key: m.key } });
+            // 2. KUHAKIKISHA NI OWNER (Inalinganisha na namba zako kwenye config.js)
+            const isOwner = config.ownerNumber.includes(cleanSender);
 
-            // 3. FUTA FAILI LA SYSTEM DATA (CACHE)
-            if (fs.existsSync(STORE_FILE)) {
-                fs.unlinkSync(STORE_FILE);
-                console.log("✅ [SYSTEM] .system_data.enc deleted successfully.");
+            if (!isOwner) {
+                return m.reply("❌ Amri hii ni kwa mmiliki pekee!. 😂");
             }
 
-            // 4. SAFISHA RAM CACHE (ILI ILIMISHE KUPAKUA UPYA)
-            // Kumbuka: Hii itafuta kumbukumbu ya plugins zote kwenye session hii
-            // (Inategemea kama index.js yako inaruhusu ku-clear pluginCache)
-            
+            // 3. PATH YA FAILI LA SYSTEM DATA
+            // Inategemea bot yako imekaa vipi, mara nyingi ni hivi:
+            const STORE_FILE = path.join(__dirname, "../.system_data.enc"); 
+
+            await sock.sendMessage(m.key.remoteJid, { react: { text: "⏳", key: m.key } });
+
+            // 4. KUFUTA CACHE
+            if (fs.existsSync(STORE_FILE)) {
+                fs.unlinkSync(STORE_FILE);
+                console.log("✅ [SYSTEM] .system_data.enc deleted.");
+            } else {
+                // Kama halipo hapo juu, jaribu path nyingine ya kawaida
+                const altPath = path.join(__dirname, "./.system_data.enc");
+                if (fs.existsSync(altPath)) fs.unlinkSync(altPath);
+            }
+
             let updateMsg = `*🚀 SASAMPA-MD UPDATE SYSTEM*\n\n`;
-            updateMsg += `✅ *Cache Cleared:* Faili la mfumo limefutwa.\n`;
-            updateMsg += `🔄 *Status:* Bot sasa itapakua plugins mpya kutoka Cloud.\n\n`;
-            updateMsg += `_Tafadhali piga command yoyote (mfano .menu) ili kuona mabadiliko._`;
+            updateMsg += `✅ *Owner Verified:* ${config.ownerName}\n`;
+            updateMsg += `✅ *Cache Status:* System Data imesafishwa.\n`;
+            updateMsg += `🔄 *Next Step:* Piga amri yoyote (mfano .menu) ili bot ipakue kodi mpya kutoka Cloud.\n`;
 
             await m.reply(updateMsg);
-
-            // 5. REACTION YA KIMALIZIA
             await sock.sendMessage(m.key.remoteJid, { react: { text: "✅", key: m.key } });
-
-            // (Optional) Unaweza kuilazimisha bot ijizime ili iwake upya (Kama unatumia PM2 au Auto-restart)
-            // process.exit(0); 
 
         } catch (error) {
             console.error("❌ Update Error:", error);
-            await m.reply("⚠️ Hitilafu imetokea wakati wa ku-update: " + error.message);
+            await m.reply("⚠️ Hitilafu: " + error.message);
         }
     }
 };
-                   
+        
