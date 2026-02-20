@@ -3,43 +3,57 @@ const path = require('path');
 
 module.exports = {
     name: "update",
-    run: async (sock, m, { config, isOwner }) => {
+    run: async (sock, m, { config }) => {
         try {
-            // 1. KUSAFISHA NAMBA (OWNER CHECK)
+            // 1. KUPATA NAMBA YA MTUMAJI KWA USAHIHI
+            // Tunachukua m.key.participant (kwenye group) au m.key.remoteJid (DM)
             const sender = m.key.participant || m.key.remoteJid;
+            
+            // 2. KUSAFISHA NAMBA (Tunabakiza namba tupu tu, mfano: 255775923311)
+            // Hii inatoa @s.whatsapp.net, :1, :4, n.k.
             const cleanSender = sender.replace(/[^0-9]/g, '');
+
+            // 3. ULINZI WA MMILIKI (OWNER CHECK)
+            // Tunaangalia kama namba iliyosafishwa ipo kwenye list yako ya config
             const isActuallyOwner = config.ownerNumber.includes(cleanSender);
 
-            if (!isActuallyOwner) return m.reply("❌ Amri hii ni kwa mmiliki pekee!");
-
-            // 2. PATH YA SYSTEM FILE
-            const STORE_FILE = path.join(process.cwd(), ".system_data.enc");
-
-            // 3. ACTION: FUTA CACHE KWENYE STORAGE
-            if (fs.existsSync(STORE_FILE)) {
-                fs.unlinkSync(STORE_FILE); // Futa faili kabisa
-                console.log("🗑️ [CLEANUP] Storage file deleted.");
+            if (!isActuallyOwner) {
+                // Kama sio owner, bot inakaa kimya au inatoa onyo fupi
+                console.log(`🚫 [SECURITY] Unauthorized update attempt from: ${cleanSender}`);
+                return m.reply("⚠️ *Hapana!* Amri hii ni maalum kwa Mmiliki wa bot tu.");
             }
 
-            // 4. ACTION: SAFISHA RAM (pluginCache)
-            // Kwenye index.js yako, pluginCache ni global. Tunasafisha yote!
+            // --- KAMA NI OWNER, KAZI INAANZA HAPA ---
+
+            // 4. PATH YA FAILI LA SYSTEM DATA
+            const STORE_FILE = path.join(process.cwd(), ".system_data.enc");
+
+            // 5. ACTION: FUTA CACHE KWENYE STORAGE
+            if (fs.existsSync(STORE_FILE)) {
+                fs.unlinkSync(STORE_FILE);
+                console.log("🗑️ [CLEANUP] Storage file (.system_data.enc) deleted.");
+            }
+
+            // 6. ACTION: SAFISHA RAM (pluginCache)
+            // Hii inafuta kila kitu kilichohifadhiwa kwenye RAM sasa hivi
             if (typeof pluginCache !== 'undefined') {
                 pluginCache.clear(); 
                 console.log("🧠 [CLEANUP] RAM Cache cleared.");
             }
 
-            // 5. TUMA JIBU
-            let msg = `*🚀 SASAMPA-MD LIVE UPDATE*\n\n`;
-            msg += `✅ *Storage:* Futa (.system_data.enc)\n`;
-            msg += `✅ *RAM:* Safi (pluginCache cleared)\n`;
-            msg += `📡 *Status:* Bot sasa haina 'memory' ya kodi ya zamani. Kila amri utakayopiga sasa itatoka Cloud moja kwa moja.`;
+            // 7. TUMA JIBU LA MAFANIKIO
+            let msg = `*🚀 SASAMPA-MD MANUAL RESET*\n\n`;
+            msg += `✅ *Verification:* Mmiliki ametambuliwa.\n`;
+            msg += `✅ *Storage:* Faili la cache limefutwa.\n`;
+            msg += `✅ *RAM:* Memory ya plugins imesafishwa.\n\n`;
+            msg += `📡 *Status:* Bot ipo 'fresh'. Amri inayofuata itatoka Cloud moja kwa moja.`;
 
             await m.reply(msg);
 
         } catch (error) {
-            console.error("❌ Cleanup Error:", error);
-            await m.reply("⚠️ Hitilafu wakati wa kusafisha: " + error.message);
+            console.error("❌ Update Error:", error);
+            await m.reply("⚠️ Hitilafu: " + error.message);
         }
     }
 };
-            
+        
