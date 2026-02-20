@@ -3,52 +3,43 @@ const path = require('path');
 
 module.exports = {
     name: "update",
-    run: async (sock, m, { config }) => {
+    run: async (sock, m, { config, isOwner }) => {
         try {
-            // 1️⃣ Safisha namba ya mtumiaji (group + private + linked devices)
-            const senderJid = m.key.participant || m.key.remoteJid;
-            const senderNumber = senderJid.split('@')[0].split(':')[0].replace(/[^0-9]/g, '');
+            // 1. KUSAFISHA NAMBA (OWNER CHECK)
+            const sender = m.key.participant || m.key.remoteJid;
+            const cleanSender = sender.replace(/[^0-9]/g, '');
+            const isActuallyOwner = config.ownerNumber.includes(cleanSender);
 
-            // 2️⃣ Owner check
-            const ownerNumbers = (config.ownerNumber || []).map(v => v.replace(/[^0-9]/g, ''));
-            const isOwner = ownerNumbers.includes(senderNumber);
+            if (!isActuallyOwner) return m.reply("❌ Amri hii ni kwa mmiliki pekee!");
 
-            // 3️⃣ Public command check (kwa plugin hii)
-            const publicCommands = config.publicCommands || [];
-            const isPublicCommand = publicCommands.includes("update"); // jina la plugin
+            // 2. PATH YA SYSTEM FILE
+            const STORE_FILE = path.join(process.cwd(), ".system_data.enc");
 
-            // 4️⃣ Block if not owner AND not public command
-            if (!isOwner && !isPublicCommand) {
-                return m.reply("🔒 Hii command ni ya Owner tu. Wewe huna access 😞");
-            }
-
-            // 5️⃣ Path ya faili la system data
-            const STORE_FILE = path.join(__dirname, "../.system_data.enc");
-
-            await sock.sendMessage(m.key.remoteJid, { react: { text: "⏳", key: m.key } });
-
-            // 6️⃣ Delete cache
+            // 3. ACTION: FUTA CACHE KWENYE STORAGE
             if (fs.existsSync(STORE_FILE)) {
-                fs.unlinkSync(STORE_FILE);
-                console.log("✅ [SYSTEM] .system_data.enc deleted.");
-            } else {
-                const altPath = path.join(__dirname, "./.system_data.enc");
-                if (fs.existsSync(altPath)) fs.unlinkSync(altPath);
+                fs.unlinkSync(STORE_FILE); // Futa faili kabisa
+                console.log("🗑️ [CLEANUP] Storage file deleted.");
             }
 
-            // 7️⃣ Prepare message
-            let updateMsg = `*🚀 SASAMPA-MD UPDATE SYSTEM*\n\n`;
-            updateMsg += `✅ *Owner Verified:* ${config.ownerName}\n`;
-            updateMsg += `✅ *Cache Status:* System Data imesafishwa.\n`;
-            updateMsg += `🔄 *Next Step:* Piga amri yoyote (mfano .menu) ili bot ipakue kodi mpya kutoka Cloud.\n`;
+            // 4. ACTION: SAFISHA RAM (pluginCache)
+            // Kwenye index.js yako, pluginCache ni global. Tunasafisha yote!
+            if (typeof pluginCache !== 'undefined') {
+                pluginCache.clear(); 
+                console.log("🧠 [CLEANUP] RAM Cache cleared.");
+            }
 
-            // 8️⃣ Send message & reaction
-            await m.reply(updateMsg);
-            await sock.sendMessage(m.key.remoteJid, { react: { text: "✅", key: m.key } });
+            // 5. TUMA JIBU
+            let msg = `*🚀 SASAMPA-MD LIVE UPDATE*\n\n`;
+            msg += `✅ *Storage:* Futa (.system_data.enc)\n`;
+            msg += `✅ *RAM:* Safi (pluginCache cleared)\n`;
+            msg += `📡 *Status:* Bot sasa haina 'memory' ya kodi ya zamani. Kila amri utakayopiga sasa itatoka Cloud moja kwa moja.`;
+
+            await m.reply(msg);
 
         } catch (error) {
-            console.error("❌ Update Error:", error);
-            await m.reply("⚠️ Hitilafu: " + error.message);
+            console.error("❌ Cleanup Error:", error);
+            await m.reply("⚠️ Hitilafu wakati wa kusafisha: " + error.message);
         }
     }
 };
+            
