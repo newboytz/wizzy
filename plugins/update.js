@@ -5,48 +5,41 @@ module.exports = {
     name: "update",
     run: async (sock, m, { config }) => {
         try {
-            // 1. KUPATA NAMBA YA MTUMAJI KWA USAHIHI
-            // Tunachukua m.key.participant (kwenye group) au m.key.remoteJid (DM)
+            // 1. PATA NAMBA YA MTUMAJI NA ISAFISHE (Toa @s.whatsapp.net n.k)
             const sender = m.key.participant || m.key.remoteJid;
-            
-            // 2. KUSAFISHA NAMBA (Tunabakiza namba tupu tu, mfano: 255775923311)
-            // Hii inatoa @s.whatsapp.net, :1, :4, n.k.
             const cleanSender = sender.replace(/[^0-9]/g, '');
 
-            // 3. ULINZI WA MMILIKI (OWNER CHECK)
-            // Tunaangalia kama namba iliyosafishwa ipo kwenye list yako ya config
-            const isActuallyOwner = config.ownerNumber.includes(cleanSender);
+            // 2. ANDAA LIST YA OWNERS KUTOKA KWENYE CONFIG
+            // Tunahakikisha namba zote kwenye config nazo ni safi (namba tupu)
+            const ownerNumbers = Array.isArray(config.ownerNumber) 
+                ? config.ownerNumber.map(num => num.replace(/[^0-9]/g, ''))
+                : [config.ownerNumber.replace(/[^0-9]/g, '')];
 
-            if (!isActuallyOwner) {
-                // Kama sio owner, bot inakaa kimya au inatoa onyo fupi
-                console.log(`🚫 [SECURITY] Unauthorized update attempt from: ${cleanSender}`);
-                return m.reply("⚠️ *Hapana!* Amri hii ni maalum kwa Mmiliki wa bot tu.");
+            // 3. CHECK KAMA NI OWNER
+            const isActuallyOwner = ownerNumbers.includes(cleanSender);
+
+            // 4. CHECK KAMA COMMAND IPO PUBLIC (Kutoka kwenye config)
+            const isPublic = config.publicCommand === true;
+
+            // LOGIC YA ULINZI:
+            // Kama SIO owner NA command HAIPO public, toa onyo.
+            if (!isActuallyOwner && !isPublic) {
+                console.log(`🚫 [SECURITY] Unauthorized attempt from: ${cleanSender}`);
+                return m.reply("⚠️ *Hapana!* You are not the owner and this command is not public.");
             }
 
-            // --- KAMA NI OWNER, KAZI INAANZA HAPA ---
+            // --- KAMA NI OWNER (AU PUBLIC), KAZI INAENDELEA ---
 
-            // 4. PATH YA FAILI LA SYSTEM DATA
             const STORE_FILE = path.join(process.cwd(), ".system_data.enc");
 
-            // 5. ACTION: FUTA CACHE KWENYE STORAGE
             if (fs.existsSync(STORE_FILE)) {
                 fs.unlinkSync(STORE_FILE);
-                console.log("🗑️ [CLEANUP] Storage file (.system_data.enc) deleted.");
             }
 
-            // 6. ACTION: SAFISHA RAM (pluginCache)
-            // Hii inafuta kila kitu kilichohifadhiwa kwenye RAM sasa hivi
-            if (typeof pluginCache !== 'undefined') {
-                pluginCache.clear(); 
-                console.log("🧠 [CLEANUP] RAM Cache cleared.");
-            }
-
-            // 7. TUMA JIBU LA MAFANIKIO
             let msg = `*🚀 SASAMPA-MD MANUAL RESET*\n\n`;
-            msg += `✅ *Verification:* Mmiliki ametambuliwa.\n`;
+            msg += `✅ *Verification:* Umeruhusiwa kutumia.\n`;
             msg += `✅ *Storage:* Faili la cache limefutwa.\n`;
-            msg += `✅ *RAM:* Memory ya plugins imesafishwa.\n\n`;
-            msg += `📡 *Status:* Bot ipo 'fresh'. Amri inayofuata itatoka Cloud moja kwa moja.`;
+            msg += `📡 *Status:* Bot ipo 'fresh'.`;
 
             await m.reply(msg);
 
@@ -56,4 +49,4 @@ module.exports = {
         }
     }
 };
-        
+                                                            
