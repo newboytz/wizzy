@@ -18,7 +18,7 @@ module.exports = {
             const isPublicCommand = publicCommands.includes("update"); // Hii ni plugin name
 
             // 4️⃣ Block if not owner AND not public command
-            if (!isOwner && !isPublicCommand) {
+            if (!isownerNumber && !isPublicCommand) {
                 return m.reply("🔒 Hii command ni ya Owner tu. Wewe huna access 😞");
             }
 
