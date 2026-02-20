@@ -5,7 +5,7 @@ module.exports = {
     name: "update",
     run: async (sock, m, { config }) => {
         try {
-            // 1️⃣ Kusafisha namba ya mtumiaji (Group + Private + Linked devices)
+            // 1️⃣ Safisha namba ya mtumiaji (group + private + linked devices)
             const senderJid = m.key.participant || m.key.remoteJid;
             const senderNumber = senderJid.split('@')[0].split(':')[0].replace(/[^0-9]/g, '');
 
@@ -13,12 +13,12 @@ module.exports = {
             const ownerNumbers = (config.ownerNumber || []).map(v => v.replace(/[^0-9]/g, ''));
             const isOwner = ownerNumbers.includes(senderNumber);
 
-            // 3️⃣ Public command check
+            // 3️⃣ Public command check (kwa plugin hii)
             const publicCommands = config.publicCommands || [];
-            const isPublicCommand = publicCommands.includes("update"); // Hii ni plugin name
+            const isPublicCommand = publicCommands.includes("update"); // jina la plugin
 
             // 4️⃣ Block if not owner AND not public command
-            if (!isownerNumber && !isPublicCommand) {
+            if (!isOwner && !isPublicCommand) {
                 return m.reply("🔒 Hii command ni ya Owner tu. Wewe huna access 😞");
             }
 
@@ -27,7 +27,7 @@ module.exports = {
 
             await sock.sendMessage(m.key.remoteJid, { react: { text: "⏳", key: m.key } });
 
-            // 6️⃣ Kufuta cache
+            // 6️⃣ Delete cache
             if (fs.existsSync(STORE_FILE)) {
                 fs.unlinkSync(STORE_FILE);
                 console.log("✅ [SYSTEM] .system_data.enc deleted.");
