@@ -5,39 +5,44 @@ module.exports = {
     name: "update",
     run: async (sock, m, { config }) => {
         try {
-            // 1. KUSAFISHA NAMBA YA MTUMAJI (SENDER)
-            // Hii inatoa kila kitu kisicho namba (mfano @s.whatsapp.net au :1)
-            const senderNumber = m.key.participant || m.key.remoteJid;
-            const cleanSender = senderNumber.replace(/[^0-9]/g, ''); 
+            // 1️⃣ Kusafisha namba ya mtumiaji (Group + Private + Linked devices)
+            const senderJid = m.key.participant || m.key.remoteJid;
+            const senderNumber = senderJid.split('@')[0].split(':')[0].replace(/[^0-9]/g, '');
 
-            // 2. KUHAKIKISHA NI OWNER (Inalinganisha na namba zako kwenye config.js)
-            const isOwner = config.ownerNumber.includes(cleanSender);
+            // 2️⃣ Owner check
+            const ownerNumbers = (config.ownerNumber || []).map(v => v.replace(/[^0-9]/g, ''));
+            const isOwner = ownerNumbers.includes(senderNumber);
 
-            if (!isOwner) {
-                return m.reply("❌ Amri hii ni kwa mmiliki pekee!. 😂");
+            // 3️⃣ Public command check
+            const publicCommands = config.publicCommands || [];
+            const isPublicCommand = publicCommands.includes("update"); // Hii ni plugin name
+
+            // 4️⃣ Block if not owner AND not public command
+            if (!isOwner && !isPublicCommand) {
+                return m.reply("🔒 Hii command ni ya Owner tu. Wewe huna access 😞");
             }
 
-            // 3. PATH YA FAILI LA SYSTEM DATA
-            // Inategemea bot yako imekaa vipi, mara nyingi ni hivi:
-            const STORE_FILE = path.join(__dirname, "../.system_data.enc"); 
+            // 5️⃣ Path ya faili la system data
+            const STORE_FILE = path.join(__dirname, "../.system_data.enc");
 
             await sock.sendMessage(m.key.remoteJid, { react: { text: "⏳", key: m.key } });
 
-            // 4. KUFUTA CACHE
+            // 6️⃣ Kufuta cache
             if (fs.existsSync(STORE_FILE)) {
                 fs.unlinkSync(STORE_FILE);
                 console.log("✅ [SYSTEM] .system_data.enc deleted.");
             } else {
-                // Kama halipo hapo juu, jaribu path nyingine ya kawaida
                 const altPath = path.join(__dirname, "./.system_data.enc");
                 if (fs.existsSync(altPath)) fs.unlinkSync(altPath);
             }
 
+            // 7️⃣ Prepare message
             let updateMsg = `*🚀 SASAMPA-MD UPDATE SYSTEM*\n\n`;
             updateMsg += `✅ *Owner Verified:* ${config.ownerName}\n`;
             updateMsg += `✅ *Cache Status:* System Data imesafishwa.\n`;
             updateMsg += `🔄 *Next Step:* Piga amri yoyote (mfano .menu) ili bot ipakue kodi mpya kutoka Cloud.\n`;
 
+            // 8️⃣ Send message & reaction
             await m.reply(updateMsg);
             await sock.sendMessage(m.key.remoteJid, { react: { text: "✅", key: m.key } });
 
@@ -47,4 +52,3 @@ module.exports = {
         }
     }
 };
-        
