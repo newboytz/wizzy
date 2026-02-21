@@ -82,7 +82,7 @@ module.exports = {
             }
         }
 
-        dynamicMenu += `\n*_© power by ${botName} - on fire_*`;
+        dynamicMenu += `\n*_© power by ${config.botName} - on fire_*`;
 
                         // --- CHAGUA PICHA RANDOM ---
         // Tumia 'config' badala ya 'global' kwa sababu 'config' imepitishwa kama parameter
