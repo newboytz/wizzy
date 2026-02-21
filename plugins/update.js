@@ -5,48 +5,45 @@ module.exports = {
     name: "update",
     run: async (sock, m, { config }) => {
         try {
-            // 1. PATA NAMBA YA MTUMAJI NA ISAFISHE (Toa @s.whatsapp.net n.k)
+            // 1. ULINZI: Hakikisha ni Owner pekee
             const sender = m.key.participant || m.key.remoteJid;
             const cleanSender = sender.replace(/[^0-9]/g, '');
-
-            // 2. ANDAA LIST YA OWNERS KUTOKA KWENYE CONFIG
-            // Tunahakikisha namba zote kwenye config nazo ni safi (namba tupu)
+            
             const ownerNumbers = Array.isArray(config.ownerNumber) 
                 ? config.ownerNumber.map(num => num.replace(/[^0-9]/g, ''))
                 : [config.ownerNumber.replace(/[^0-9]/g, '')];
 
-            // 3. CHECK KAMA NI OWNER
-            const isActuallyOwner = ownerNumbers.includes(cleanSender);
-
-            // 4. CHECK KAMA COMMAND IPO PUBLIC (Kutoka kwenye config)
-            const isPublic = config.publicCommand === true;
-
-            // LOGIC YA ULINZI:
-            // Kama SIO owner NA command HAIPO public, toa onyo.
-            if (!isActuallyOwner && !isPublic) {
-                console.log(`🚫 [SECURITY] Unauthorized attempt from: ${cleanSender}`);
-                return m.reply("⚠️ *Hapana!* You are not the owner and this command is not public.");
+            if (!ownerNumbers.includes(cleanSender)) {
+                return m.reply("❌ *Access Denied:* Amri hii ni kwa ajili ya Boss pekee! 😎");
             }
 
-            // --- KAMA NI OWNER (AU PUBLIC), KAZI INAENDELEA ---
-
+            // 2. TAFUTA CACHE NA KUIFUTA
             const STORE_FILE = path.join(process.cwd(), ".system_data.enc");
-
             if (fs.existsSync(STORE_FILE)) {
                 fs.unlinkSync(STORE_FILE);
             }
 
-            let msg = `*🚀 ${config.botName} MANUAL RESET*\n\n`;
-            msg += `✅ *Verification:* Umeruhusiwa kutumia.\n`;
-            msg += `✅ *Storage:* Faili la cache limefutwa.\n`;
-            msg += `📡 *Status:* Bot ipo 'fresh'.`;
+            // 3. TUMA UJUMBE WA KUAGIZIA RESTART
+            let msg = `*🚀 ${config.botName.toUpperCase()} SYSTEM OVERHAUL*\n\n`;
+            msg += `♻️ *Cache:* Imefutwa kikamilifu.\n`;
+            msg += `🔌 *Action:* Bot inajizima na kuwaka upya...\n`;
+            msg += `⏳ *Status:* Ikae tayari ndani ya sekunde 5-10.\n\n`;
+            msg += `_Machine itakuwa na nguvu kinyama!_ 🔥`;
 
             await m.reply(msg);
 
+            // 4. CHELEWESHA KIDOGO KISHA ZIMA BOT
+            // Tunatoa sekunde 3 ili ujumbe wa WhatsApp utumike vizuri kabla process haijafa
+            console.log("♻️ Restarting bot...");
+            
+            setTimeout(() => {
+                process.exit(0); // Hii inaua bot moja kwa moja
+            }, 3000);
+
         } catch (error) {
             console.error("❌ Update Error:", error);
-            await m.reply("⚠️ Hitilafu: " + error.message);
+            await m.reply("⚠️ Hitilafu imetokea: " + error.message);
         }
     }
 };
-                                                            
+                
