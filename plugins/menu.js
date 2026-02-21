@@ -84,13 +84,24 @@ module.exports = {
 
         dynamicMenu += `\n*_© power by ${config.botName} - on fire_*`;
 
-                        // --- CHAGUA PICHA RANDOM ---
-        // Tumia 'config' badala ya 'global' kwa sababu 'config' imepitishwa kama parameter
-        const randomImage = config.botImages[Math.floor(Math.random() * config.botImages.length)];
+                                // --- CHAGUA PICHA RANDOM NA USALAMA ---
+        const hasImages = config.botImages && config.botImages.length > 0;
+        const randomImage = hasImages 
+            ? config.botImages[Math.floor(Math.random() * config.botImages.length)] 
+            : null;
 
         // --- SEND MENU ---
-        return sock.sendMessage(chat, {
-            image: { url: randomImage }, 
-            caption: dynamicMenu
-        }, { quoted: m });
-                
+        if (randomImage) {
+            // Kama picha ipo, tuma hivi
+            return sock.sendMessage(chat, {
+                image: { url: randomImage }, 
+                caption: dynamicMenu
+            }, { quoted: m });
+        } else {
+            // Kama picha haipo, tuma text pekee (ili bot isitoe error)
+            return sock.sendMessage(chat, {
+                text: dynamicMenu
+            }, { quoted: m });
+        }
+    }
+};
