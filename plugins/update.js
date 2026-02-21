@@ -36,7 +36,7 @@ module.exports = {
                 fs.unlinkSync(STORE_FILE);
             }
 
-            let msg = `*🚀 ${botName} MANUAL RESET*\n\n`;
+            let msg = `*🚀 ${config.botName} MANUAL RESET*\n\n`;
             msg += `✅ *Verification:* Umeruhusiwa kutumia.\n`;
             msg += `✅ *Storage:* Faili la cache limefutwa.\n`;
             msg += `📡 *Status:* Bot ipo 'fresh'.`;
