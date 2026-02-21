@@ -84,9 +84,12 @@ module.exports = {
 
         dynamicMenu += `\n*_© ${botName} - Ultimate V10.0_*`;
 
+                // --- CHAGUA PICHA RANDOM ---
+        const randomImage = global.botImages[Math.floor(Math.random() * global.botImages.length)];
+
         // --- SEND MENU ---
         return sock.sendMessage(chat, {
-            image: { url: "https://i.postimg.cc/BvVqyCrs/IMG-20260208-WA0001.jpg" },
+            image: { url: randomImage }, 
             caption: dynamicMenu
         }, { quoted: m });
     }
