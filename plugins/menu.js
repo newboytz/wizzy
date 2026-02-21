@@ -46,7 +46,6 @@ module.exports = {
 
             // --- DYNAMIC MENU HEADER ---
             let dynamicMenu = `*╭━ 𖤍〔 ${botName.toUpperCase()}〕𖤍*\n`;
-            dynamicMenu += `*┃ 👤 MTUMIAJI* : ${pushName}\n`;
             dynamicMenu += `*┃ 👑 OWNER* : ${displayOwnerName}\n`;
             dynamicMenu += `*┃ 🕹️ PREFIX* : [ ${prefix} ]\n`;
             dynamicMenu += `*┃ 📟 HOST* : ${getHost()}\n`;
@@ -85,7 +84,7 @@ module.exports = {
                 }
             }
 
-            dynamicMenu += `\n*_© ${botName} - Ultimate V10.0_*`;
+            dynamicMenu += `\n*_© power by ${botName} - on fire 🔥_*`;
 
             // --- RANDOM IMAGE SELECTION ---
             const pichaZote = config.urlPcha;
