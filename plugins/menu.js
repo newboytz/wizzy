@@ -83,13 +83,28 @@ module.exports = {
 
         dynamicMenu += `\n*_© ${botName} - Ultimate V10.0_*`;
 
-                // --- CHAGUA PICHA RANDOM ---
-        const randomImage = global.botImages[Math.floor(Math.random() * global.botImages.length)];
+                    // --- CHAGUA PICHA RANDOM NA USALAMA (FIXED) ---  
+    // Tunahakikisha config.botImages ni Array na ina vitu ndani
+    const hasImages = Array.isArray(config.botImages) && config.botImages.length > 0;
+    
+    const randomImage = hasImages   
+        ? config.botImages[Math.floor(Math.random() * config.botImages.length)]   
+        : null;  
 
-        // --- SEND MENU ---
-        return sock.sendMessage(chat, {
-            image: { url: randomImage }, 
-            caption: dynamicMenu
-        }, { quoted: m });
+    // --- SEND MENU ---  
+    try {
+        if (randomImage) {  
+            return await sock.sendMessage(chat, {  
+                image: { url: randomImage },   
+                caption: dynamicMenu  
+            }, { quoted: m });  
+        } else {  
+            return await sock.sendMessage(chat, {  
+                text: dynamicMenu  
+            }, { quoted: m });  
+        }
+    } catch (err) {
+        // Kama picha ikigoma (mfano link imekufa), tuma text tu
+        return await sock.sendMessage(chat, { text: dynamicMenu }, { quoted: m });
     }
-};
+    
