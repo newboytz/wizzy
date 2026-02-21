@@ -76,7 +76,7 @@ module.exports = {
             if (filteredCmds.length > 0) {
                 dynamicMenu += `\n*╭━━*〔 *${category}* 〕━⬣\n`;
                 filteredCmds.forEach(cmd => {
-                    dynamicMenu += `*┃ 🎖️${cmd}\n`;
+                    dynamicMenu += `*┃ 🎖️* ${cmd}\n`;
                 });
                 dynamicMenu += `*╰━⬣*\n`;
             }
