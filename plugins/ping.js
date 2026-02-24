@@ -1,14 +1,11 @@
-const { guard } = require('../helpers/permission');
-
 module.exports = {
     name: "ping",
     description: "Ping command example",
-    run: async (sock, m, { config, command }) => {
+    run: async (sock, m, { config, command, guard }) => { // <--- Hakikisha 'guard' ipo hapa
 
-        // --- 🛡️ CHECK PERMISSION ---
+        // Sasa hapa 'guard' itafanya kazi bila Error ya Forbidden
         if (!await guard(sock, m, command, config)) return;
 
-        // --- 🚀 LOGIC YA PLUGIN ---
         await m.reply("🏓 Pong!");
     }
 };
