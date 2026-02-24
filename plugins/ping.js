@@ -1,20 +1,18 @@
-// ==========================================
-// PLUGIN NAME: Ping
-// DESCRIPTION: Inajibu 'Pong!' ikichekiwa
-// ==========================================
-
+// ping.js
 module.exports = {
-    async run(sock, m, { text, config }) {
-        try {
-            const from = m.key.remoteJid;
-            
-            // Tuma ujumbe wa kurudisha (Reply)
-            await sock.sendMessage(from, { 
-                text: "Pong! 🚀 Bot ipo online na inafanya kazi kwa wepesi." 
-            }, { quoted: m });
+    name: "ping",
+    description: "Simple ping command",
+    run: async (sock, m, { config, isOwner, command }) => {
 
-        } catch (e) {
-            console.error("Error in ping plugin:", e);
+        // --- 🛡️ GLOBAL PLUGIN GUARD ---
+        const isPublic = config.publicCommands && config.publicCommands.includes(command);
+        if (!isOwner && !isPublic) {
+            console.log(`⚠️ Unauthorized attempt by ${m.key.participant || m.key.remoteJid} for ${command}`);
+            await m.reply("❌ You are not allowed to run this command.");
+            return; // Haiteki plugin
         }
+
+        // --- 🚀 COMMAND LOGIC ---
+        await m.reply("🏓 Pong!");
     }
 };
