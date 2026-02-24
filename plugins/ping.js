@@ -1,18 +1,14 @@
-// ping.js
+const { guard } = require('../helpers/permission');
+
 module.exports = {
     name: "ping",
-    description: "Simple ping command",
-    run: async (sock, m, { config, isOwner, command }) => {
+    description: "Ping command example",
+    run: async (sock, m, { config, command }) => {
 
-        // --- 🛡️ GLOBAL PLUGIN GUARD ---
-        const isPublic = config.publicCommands && config.publicCommands.includes(command);
-        if (!isOwner && !isPublic) {
-            console.log(`⚠️ Unauthorized attempt by ${m.key.participant || m.key.remoteJid} for ${command}`);
-            await m.reply("❌ You are not allowed to run this command.");
-            return; // Haiteki plugin
-        }
+        // --- 🛡️ CHECK PERMISSION ---
+        if (!await guard(sock, m, command, config)) return;
 
-        // --- 🚀 COMMAND LOGIC ---
+        // --- 🚀 LOGIC YA PLUGIN ---
         await m.reply("🏓 Pong!");
     }
 };
