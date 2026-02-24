@@ -1,58 +1,56 @@
 module.exports = {
     name: "kick",
-    description: "Kick a member from the group",
-    run: async (sock, m, { guard, config, command, text }) => {
+    run: async (sock, m, { guard, config, command, text, args }) => {
         
-        // 1️⃣ --- GUARD SYSTEM CHECK ---
-        // Inahakikisha hii command inatumika kwenye Group pekee na na Owner/Authorized
+        // --- 1. GUARD SYSTEM (Hapa ndipo tunatumia guard yako) ---
+        // Inahakikisha hii command inatumika kwenye Group pekee na na Owner
         if (!await guard(sock, m, command, config, { groupOnly: true })) return;
 
-        const from = m.key.remoteJid;
+        const chat = m.key.remoteJid;
 
-        // 2️⃣ --- TARGET IDENTIFICATION ---
-        // Inatafuta nani wa kupigwa "Shoe" (Mention, Reply, au Text)
-        let users = m.mentionedJid[0] 
-                    ? m.mentionedJid[0] 
-                    : m.quoted 
-                        ? m.quoted.sender 
-                        : text.replace(/[^0-9]/g, '') + '@s.whatsapp.net';
-
-        if (!users || users.length < 10) {
-            return m.reply("❌ *Error:* Please tag a user, reply to their message, or type their number.");
-        }
-
-        // 3️⃣ --- PERMISSION CHECK (Bot Admin Status) ---
-        const groupMetadata = await sock.groupMetadata(from);
-        const participants = groupMetadata.participants;
-        const botId = sock.user.id.split(':')[0] + '@s.whatsapp.net';
-        const botIsAdmin = participants.find(p => p.id === botId)?.admin;
-
-        if (!botIsAdmin) {
-            return m.reply("❌ *Failed:* I need to be an **Admin** to kick members.");
-        }
-
-        // 4️⃣ --- EXECUTION (The Kick) ---
         try {
-            await sock.groupParticipantsUpdate(from, [users], "remove");
-            
-            // 🏗️ Build High-End Notification
-            let response = `*━─┈❮ 🚨 GROUP KICK 🚨 ❯┈─━*\n\n`;
-            response += `👞 *Target:* @${users.split('@')[0]}\n`;
-            response += `👮 *Action By:* ${m.pushName || 'Admin'}\n`;
-            response += `📍 *Status:* Removed Successfully\n`;
-            response += `🕒 *Time:* ${new Date().toLocaleTimeString()}\n\n`;
-            response += `*--- USER HAS BEEN EXPELLED ---*`;
+            // --- 2. FETCH GROUP DATA ---
+            const groupMetadata = await sock.groupMetadata(chat);
+            const participants = groupMetadata.participants;
+            const botId = sock.user.id.split(':')[0] + '@s.whatsapp.net';
+            const isBotAdmin = participants.find(p => p.id === botId)?.admin !== null;
 
-            await sock.sendMessage(from, { 
-                text: response, 
-                mentions: [users] 
+            if (!isBotAdmin) {
+                return sock.sendMessage(chat, { text: "⚠️ *ACCESS DENIED:* Bot must be an Admin!" });
+            }
+
+            // --- 3. TARGET IDENTIFICATION ---
+            // Inatumia mfumo wako wa kwanza au m.quoted
+            let target = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null);
+
+            if (!target && args[0]) {
+                target = args[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net';
+            }
+
+            if (!target) return m.reply("❌ Please mention a user or reply to their message!");
+
+            // --- 4. EXECUTION ---
+            await sock.groupParticipantsUpdate(chat, [target], 'remove');
+
+            // --- 5. PRO MAX DASHBOARD ---
+            const senderNumber = m.key.participant ? m.key.participant.split('@')[0] : 'Owner';
+            let dashboard = `🚀 *KICK PRO MAX V13.9: SUCCESS*\n`;
+            dashboard += `━━━━━━━━━━━━━━━━━━━━\n`;
+            dashboard += `👤 *User:* @${target.split('@')[0]}\n`;
+            dashboard += `🛡️ *Action:* Instant Removal\n`;
+            dashboard += `👑 *Authorized By:* @${senderNumber}\n`;
+            dashboard += `━━━━━━━━━━━━━━━━━━━━\n`;
+            dashboard += `*System Status: Secured* 🛡️`;
+
+            return sock.sendMessage(chat, {
+                text: dashboard,
+                mentions: [target, m.sender]
             }, { quoted: m });
 
-            console.log(`\x1b[31m👞 [KICK] ${users} removed from ${groupMetadata.subject}\x1b[0m`);
         } catch (e) {
-            await m.reply("❌ *Error:* Could not kick the user. They might have already left or I don't have permission.");
-            console.log("Kick Error:", e);
+            console.log("Kick Error: ", e);
+            return m.reply("❌ *ERROR:* User already left or Bot lacks permission.");
         }
     }
 };
-                
+    
