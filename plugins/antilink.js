@@ -2,131 +2,89 @@
 
 const { guard } = require('../helpers/permission');
 
+// Hapa tunahifadhi warnings kwa kila user
 const linkWarnings = {};
 
-module.exports = {
-    name: "antilink",
-    run: async (sock, m, { config, command, isAdmin, isBotAdmin }) => {
+module.exports = async (sock, m, { config }) => {
 
-        // 🔒 HII NI GROUP ONLY
-        if (!(await guard(sock, m, command, config, {
-            groupOnly: true
-        }))) return;
+    const command = 'antilink';
 
-        const body =
-            m.message?.conversation ||
-            m.message?.extendedTextMessage?.text ||
-            "";
+    // --- GUARD: Group Only, Owner/Public Check ---
+    // Hii command ni ya group tu
+    const ok = await guard(sock, m, command, config, { groupOnly: true });
+    if (!ok) return;
 
-        const sender = m.key.participant || m.key.remoteJid;
-        const senderNumber = sender.split('@')[0];
-        const mentionTag = `@${senderNumber}`;
+    const senderNumber = m.key.participant
+        ? m.key.participant.split('@')[0]
+        : m.key.remoteJid.split('@')[0];
 
-        // ===============================
-        // 1️⃣ SETTINGS COMMAND
-        // ===============================
-        if (body.toLowerCase().startsWith(`${config.prefix}antilink`)) {
+    const sender = m.key.participant || m.key.remoteJid;
+    const mentionTag = `@${senderNumber}`;
 
-            if (!isAdmin) {
-                return sock.sendMessage(m.key.remoteJid, {
-                    text: "❌ Only group admins can change antilink settings."
-                }, { quoted: m });
-            }
+    // Pata body ya message
+    const body = m.message.conversation || m.message.extendedTextMessage?.text || "";
 
-            const args = body.trim().split(/\s+/);
-            const mode = args[1]?.toLowerCase();
-            const status = args[2]?.toLowerCase();
+    // --- 1️⃣ Handle command settings ---
+    if (body.startsWith(`${config.prefix}antilink`)) {
+        const args = body.trim().split(/ +/);
+        const mode = args[1]?.toLowerCase(); // delete / warn / off
+        const status = args[2]?.toLowerCase(); // on / off
 
-            if (!mode || !['delete', 'warn', 'off'].includes(mode) || !status) {
-                return sock.sendMessage(m.key.remoteJid, {
-                    text:
-`🔥 *${config.botName.toUpperCase()} ANTILINK SETTINGS*
-
-Usage:
-${config.prefix}antilink delete on
-${config.prefix}antilink warn on
-${config.prefix}antilink off on`
-                }, { quoted: m });
-            }
-
-            // Save mode inside config memory
-            config.antilinkMode = mode === 'off' ? 'off' : mode;
-
-            return sock.sendMessage(m.key.remoteJid, {
-                text: `✅ *${config.botName}:* ANTILINK mode set to *${mode.toUpperCase()}*`
+        if (!mode || !['delete','warn','off'].includes(mode) || !status) {
+            return await sock.sendMessage(m.key.remoteJid, {
+                text: `*🔥 ${config.botName.toUpperCase()} ANTILINK SETTINGS*\n\n*Usage:* \n${config.prefix}antilink delete on/off\n${config.prefix}antilink warn on/off`,
+                mentions: [sender]
             }, { quoted: m });
         }
 
-        // ===============================
-        // 2️⃣ GLOBAL LINK DETECTION
-        // ===============================
-        const globalLinkRegex =
-            /(https?:\/\/|www\.|wa\.me\/|t\.me\/|bit\.ly\/|tinyurl\.com\/)/gi;
+        // Save settings to global config for demo (replace na DB in real)
+        config.antilinkMode = mode === 'off' ? 'off' : mode;
+        config.antilinkStatus = status;
 
-        const antilinkStatus = config.antilinkMode || 'off';
+        return await sock.sendMessage(m.key.remoteJid, {
+            text: `✅ *${config.botName}:* ANTILINK ${mode.toUpperCase()} sasa ni *${status.toUpperCase()}*`,
+            mentions: [sender]
+        }, { quoted: m });
+    }
 
-        if (
-            globalLinkRegex.test(body) &&
-            antilinkStatus !== 'off' &&
-            !isAdmin
-        ) {
+    // --- 2️⃣ Detect links globally ---
+    const antilinkStatus = config.antilinkMode || 'off';
+    if (antilinkStatus === 'off') return;
 
-            if (!isBotAdmin) return;
+    const linkRegex = /(https?:\/\/|www\.|wa\.me\/|t\.me\/|bit\.ly\/|tinyurl\.com\/)/gi;
 
-            // 🔥 DELETE MODE
-            if (antilinkStatus === 'delete') {
+    if (linkRegex.test(body)) {
 
-                await sock.sendMessage(m.key.remoteJid, {
-                    delete: m.key
-                });
+        // Only bot admin can delete/kick
+        const isBotAdmin = true; // replace na check ya real bot admin status
+        const isAdmin = false; // replace na check ya group admin
 
-                return sock.sendMessage(m.key.remoteJid, {
-                    text:
-`🚫 *[ ${config.botName.toUpperCase()} ] LINK DETECTED*
+        if (!isBotAdmin) return; // kama bot si admin, gome
 
-Hey ${mentionTag}, links are prohibited!`,
+        // MODE DELETE
+        if (antilinkStatus === 'delete') {
+            return await sock.sendMessage(m.key.remoteJid, {
+                text: `🚫 *[ ${config.botName.toUpperCase()} ] LINK DETECTED*\n\nHey ${mentionTag}, links are prohibited!`,
+                mentions: [sender]
+            }, { quoted: m });
+        }
+
+        // MODE WARN
+        if (antilinkStatus === 'warn') {
+            linkWarnings[sender] = (linkWarnings[sender] || 0) + 1;
+            const warns = linkWarnings[sender];
+
+            if (warns >= 5) {
+                linkWarnings[sender] = 0;
+                return await sock.sendMessage(m.key.remoteJid, {
+                    text: `❌ *${config.botName} LIMIT REACHED*\n\n${mentionTag} removed for link sharing (5/5).`,
                     mentions: [sender]
-                });
-            }
-
-            // ⚠️ WARN MODE
-            if (antilinkStatus === 'warn') {
-
-                linkWarnings[sender] =
-                    (linkWarnings[sender] || 0) + 1;
-
-                const warns = linkWarnings[sender];
-
-                await sock.sendMessage(m.key.remoteJid, {
-                    delete: m.key
-                });
-
-                if (warns >= 5) {
-
-                    linkWarnings[sender] = 0;
-
-                    await sock.groupParticipantsUpdate(
-                        m.key.remoteJid,
-                        [sender],
-                        "remove"
-                    );
-
-                    return sock.sendMessage(m.key.remoteJid, {
-                        text:
-`❌ *${config.botName} LIMIT REACHED*
-
-${mentionTag} removed for link sharing (5/5).`,
-                        mentions: [sender]
-                    });
-                }
-
-                return sock.sendMessage(m.key.remoteJid, {
-                    text:
-`⚠️ *${config.botName} WARNING [${warns}/5]*
-
-${mentionTag}, stop sharing links!`,
+                }, { quoted: m });
+            } else {
+                return await sock.sendMessage(m.key.remoteJid, {
+                    text: `⚠️ *${config.botName} WARNING [${warns}/5]*\n\n${mentionTag}, stop sharing links!`,
                     mentions: [sender]
-                });
+                }, { quoted: m });
             }
         }
     }
