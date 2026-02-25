@@ -1,66 +1,66 @@
 module.exports = {
     command: ["anticall", "autoreject"],
     run: async (sock, m, { guard, config, command, text, localDB, saveDB }) => {
-        // 1. Guard System
         if (!await guard(sock, m, command, config)) return;
-
         if (!localDB.settings) localDB.settings = {};
 
-        if (!text) return m.reply(`🤖 *ANTICALL DM-ONLY*\n\nMatumizi:\n.anticall on\n.anticall off`);
+        if (!text) return m.reply(`🤖 *ANTICALL SYSTEM*\n\nUsage:\n.anticall on\n.anticall off`);
 
         if (text.toLowerCase() === "on") {
             localDB.settings.anticall = true;
             saveDB();
-            return m.reply("⚡ *ANTICALL ON:* Bot itakata simu za DM tu. Voice Chat za group haziguswi!");
+            return m.reply("⚡ *ANTICALL ACTIVATED:* Simu za kawaida pekee ndizo zitakatwa sasa!");
         } else if (text.toLowerCase() === "off") {
             localDB.settings.anticall = false;
             saveDB();
-            return m.reply("✅ *ANTICALL OFF:* Simu zote zimeruhusiwa.");
+            return m.reply("✅ *ANTICALL DEACTIVATED:* Simu zimeruhusiwa.");
         }
 
-        // 3. 🧠 THE FIXED ENGINE (Anti-Group Detection)
         if (!sock.anticallInjected) {
-            sock.ev.on('call', async (callsList) => {
-                if (localDB.settings && localDB.settings.anticall) {
-                    for (const call of callsList) {
-                        const callerId = call.from;
+            sock.ev.on('call', async (calls) => {
+                for (const call of calls) {
+                    if (localDB.settings.anticall && call.status === 'offer') {
+                        
+                        // 🔥 BAILYERS LOGIC FIX:
+                        // Kwenye Group Voice Chat, call.from mara nyingi inakuwa ya mtu, 
+                        // lakini call.chatId itakuwa ya group (@g.us).
+                        // Kwenye DM Call, call.chatId inakuwa ya huyo mtu (@s.whatsapp.net).
+                        
+                        const isGroupCall = call.chatId && call.chatId.endsWith('@g.us');
+                        const isGroupFlag = call.isGroup === true;
 
-                        // 🔥 DAWA YA GROUP VOICE CHATS:
-                        // Tunatupilia mbali kama ni simu ya group (isGroup) au ID ya group (@g.us)
-                        if (call.isGroup || callerId.endsWith('@g.us')) {
-                            console.log(`[IGNORE] Group Voice Chat detected from: ${callerId}`);
-                            continue; 
+                        if (isGroupCall || isGroupFlag) {
+                            console.log(`[IGNORE] Voice Chat in Group: ${call.chatId}`);
+                            continue; // Inaruka Voice Chat ya group
                         }
 
-                        if (call.status === 'offer') {
-                            const callId = call.id;
+                        // Sasa hapa ni DM CALL pekee
+                        const callerId = call.from;
+                        const callId = call.id;
 
-                            // Human Delay (Sekunde 1) kwa ajili ya Anti-Ban
-                            await new Promise(resolve => setTimeout(resolve, 1000));
+                        // Kasi ya radi (Punguza hadi nusu sekunde kwa "Umeme Chapa")
+                        await new Promise(resolve => setTimeout(resolve, 500));
 
-                            try {
-                                // 1. Kata Simu
-                                await sock.rejectCall(callId, callerId);
+                        try {
+                            // 1. Kata Simu Rasmi
+                            await sock.rejectCall(callId, callerId);
 
-                                // 2. Ujumbe wa kistaarabu + Mentions
-                                const ujumbe = `Hello @${callerId.split('@')[0]}! ⚡\n\nI'm sorry, I do not receive direct calls on this number. Please leave a *text message* here.\n\n_System: Auto-Reject active (DM Only)_`;
+                            // 2. Mtag kwa kistaarabu
+                            const ujumbe = `Hello @${callerId.split('@')[0]}! ⚡\n\nI'm sorry, I am currently unable to take direct calls. Please send a *text message* here instead. \n\n_System: Auto-Reject active_`;
 
-                                await sock.sendMessage(callerId, { 
-                                    text: ujumbe, 
-                                    mentions: [callerId] 
-                                });
-                                
-                                console.log(`[DM REJECTED] ${callerId}`);
-                            } catch (err) {
-                                console.log("[REJECT ERROR]: ", err.message);
-                            }
+                            await sock.sendMessage(callerId, { 
+                                text: ujumbe, 
+                                mentions: [callerId] 
+                            });
+
+                            console.log(`[REJECTED DM] From: ${callerId}`);
+                        } catch (err) {
+                            console.log("[ERROR REJECTING]: ", err.message);
                         }
                     }
                 }
             });
-            
             sock.anticallInjected = true;
-            console.log("✅ ANTICALL: DM-Only Engine Fixed & Injected!");
         }
     }
 };
