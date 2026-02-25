@@ -1,53 +1,52 @@
 module.exports = {
     command: ["anticall", "autoreject"],
     run: async (sock, m, { guard, config, command, text, localDB, saveDB }) => {
-        // 1. Guard System (Owner Check)
+        // 1. Guard System
         if (!await guard(sock, m, command, config)) return;
 
         if (!localDB.settings) localDB.settings = {};
 
-        if (!text) return m.reply(`🤖 *ANTICALL UMEME CHAPA*\n\nMatumizi:\n.anticall on\n.anticall off`);
+        if (!text) return m.reply(`🤖 *ANTICALL DM-ONLY*\n\nUsage:\n.anticall on\n.anticall off`);
 
-        // 2. Washa/Zima
         if (text.toLowerCase() === "on") {
             localDB.settings.anticall = true;
             saveDB();
-            return m.reply("⚡ *UMEME CHAPA ACTIVATED:* Bot itakata simu kwa kasi ya radi na ku-tag watu!");
+            return m.reply("⚡ *UMEME CHAPA ACTIVATED:* Bot itakata simu za DM tu, magroup hayaguswi!");
         } else if (text.toLowerCase() === "off") {
             localDB.settings.anticall = false;
             saveDB();
             return m.reply("✅ *ANTICALL DEACTIVATED:* Simu zimeruhusiwa.");
         }
 
-        // 3. 🧠 UMEME CHAPA ENGINE (Fast & Tagging)
+        // 3. 🧠 DM-ONLY ENGINE
         if (!sock.anticallInjected) {
             sock.ev.on('call', async (callsList) => {
-                
                 if (localDB.settings && localDB.settings.anticall) {
                     for (const call of callsList) {
+                        const callerId = call.from;
+
+                        // 🔥 TIBA YA GROUP: Kama simu inatoka kwenye group (@g.us), iache ipite
+                        if (callerId.endsWith('@g.us')) continue;
+
                         if (call.status === 'offer') {
                             const callId = call.id;
-                            const callerId = call.from;
 
-                            // Kasi ya Umeme (Tunapunguza delay iwe sekunde 1 tu)
+                            // Kasi ya Umeme (Sekunde 1)
                             await new Promise(resolve => setTimeout(resolve, 1000));
 
                             try {
-                                // 1. Kata Simu Papo Hapo
+                                // 1. Kata Simu
                                 await sock.rejectCall(callId, callerId);
 
-                                // 2. Pata jina la mpigaji
-                                const contact = await sock.getName(callerId) || 'User';
-
-                                // 3. Ujumbe wa Kistalabu na Kum-Tag (@mention)
-                                const ujumbe = `Hello @${callerId.split('@')[0]}! ⚡\n\nI'm sorry, I am currently unable to receive calls. Please leave a *text message* here and I will respond as soon as possible.\n\n_System: Auto-Reject active_`;
+                                // 2. Ujumbe wa kistaarabu + Mentions
+                                const ujumbe = `Hello @${callerId.split('@')[0]}! ⚡\n\nI'm sorry, I do not receive direct calls on this number. Please leave a *text message* here.\n\n_System: Auto-Reject active (DM Only)_`;
 
                                 await sock.sendMessage(callerId, { 
                                     text: ujumbe, 
                                     mentions: [callerId] 
                                 });
                                 
-                                console.log(`[UMEME CHAPA] Rejected & Tagged: ${callerId}`);
+                                console.log(`[DM REJECT] Rejected: ${callerId}`);
                             } catch (err) {
                                 console.log("[ANTICALL ERROR]: ", err.message);
                             }
@@ -57,8 +56,8 @@ module.exports = {
             });
             
             sock.anticallInjected = true;
-            console.log("⚡ UMEME CHAPA: Engine Injected Successfully!");
+            console.log("⚡ UMEME CHAPA: DM-Only Engine Injected!");
         }
     }
 };
-            
+        
