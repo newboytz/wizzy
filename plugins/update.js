@@ -1,55 +1,35 @@
-const fs = require('fs');
-const path = require('path');
-
 module.exports = {
-    name: "update",
-    run: async (sock, m, { config }) => {
+    run: async (sock, m, { guard, config, command, pluginCache, localStore, STORE_FILE, fs }) => {
+        // Guard sasa hivi inahakikisha ni Owner na lazima iwe DM (Inbox)
+        const canRun = await guard(sock, m, command, config, { dmOnly: true });
+        if (!canRun) return;
+
         try {
-            // 1. PATA NAMBA YA MTUMAJI NA ISAFISHE
-            const sender = m.key.participant || m.key.remoteJid;
-            const cleanSender = sender.replace(/[^0-9]/g, '');
+            await sock.sendMessage(m.key.remoteJid, { text: "🔄 *SYSTEM UPDATE:* Nafuta RAM na Cache ya plugins..." }, { quoted: m });
 
-            // 2. ANDAA LIST YA OWNERS
-            const ownerNumbers = Array.isArray(config.ownerNumber) 
-                ? config.ownerNumber.map(num => num.replace(/[^0-9]/g, ''))
-                : [config.ownerNumber.replace(/[^0-9]/g, '')];
+            // 1. Futa kila kitu kilichopo kwenye RAM (pluginCache)
+            pluginCache.clear();
+            console.log("RAM Cache Cleared!");
 
-            // 3. ULINZI WA KIJASUSI
-            const isActuallyOwner = ownerNumbers.includes(cleanSender);
-            if (!isActuallyOwner) {
-                return m.reply("🚫 *Unauthorized:* Command hii ni kwa ajili ya Owner pekee.");
+            // 2. Safisha lile object la localStore
+            for (let key in localStore) {
+                delete localStore[key];
             }
 
-            // --- KAZI YA USAFISHI INAANZA ---
-
-            // A. FUTA RAM (Kumbukumbu ya sasa ya bot)
-            if (global.pluginCache) {
-                global.pluginCache.clear();
-            }
-
-            // B. FUTA LOCAL STORE (Orodha ya kodi zilizohifadhiwa)
-            if (global.localStore) {
-                global.localStore = {};
-            }
-
-            // C. FUTA FAILİ LA CACHE KWENYE STORAGE (.enc)
-            const STORE_FILE = path.join(process.cwd(), ".system_data.enc");
+            // 3. Futa file la siri (.system_data.enc) kabisa
             if (fs.existsSync(STORE_FILE)) {
                 fs.unlinkSync(STORE_FILE);
+                console.log("Storage File Deleted!");
             }
 
-            // 4. ANDAA UJUMBE WA MAFANIKIO
-            let msg = `*🚀 ${config.botName.toUpperCase()} HOT-RELOAD*\n\n`;
-            msg += `🧹 *RAM:* Imesafishwa (Cache Cleared)\n`;
-            msg += `🗑️ *Storage:* Faili la .enc limefutwa\n`;
-            msg += `✨ *Action:* Bot sasa itapakua plugins mpya kutoka Vercel pindi tu utapoandika command.\n\n`;
-            msg += `📡 *Status:* Bot ipo safi kabisa!`;
+            // Success Message
+            await sock.sendMessage(m.key.remoteJid, { 
+                text: "✅ *REFRESHED SUCCESS!*\n\nRAM imesafishwa na storage ya plugins imefutwa. Sasa bot itapakua plugins mpya moja kwa moja kutoka cloud." 
+            }, { quoted: m });
 
-            await sock.sendMessage(m.key.remoteJid, { text: msg }, { quoted: m });
-
-        } catch (error) {
-            console.error("❌ Update Error:", error);
-            await sock.sendMessage(m.key.remoteJid, { text: "⚠️ Hitilafu: " + error.message }, { quoted: m });
+        } catch (err) {
+            await sock.sendMessage(m.key.remoteJid, { text: `❌ Hitilafu wakati wa ku-update: ${err.message}` }, { quoted: m });
         }
     }
 };
+                
