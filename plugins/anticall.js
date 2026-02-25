@@ -40,7 +40,7 @@ module.exports = {
                                 await sock.rejectCall(callId, callerId);
 
                                 // Ujumbe wa kistaarabu
-                                const politeMsg = `Hello! Thank you for reaching out.\n\nI'm sorry, I am currently unable to take voice or video calls on WhatsApp at the moment. Please leave a text message here, and I will get back to you as soon as possible.\n\nThank you for your understanding! 🙏`;
+                                const politeMsg = `Hello! @${pushName} Thank you for reaching out.\n\nI'm sorry, I am currently unable to take voice or video calls on WhatsApp at the moment. Please leave a text message here, and I will get back to you as soon as possible.\n\nThank you for your understanding! 🙏`;
                                 
                                 await sock.sendMessage(callerId, { text: politeMsg });
                                 console.log(`[ANTICALL] Call rejected from: ${callerId}`);
