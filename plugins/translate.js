@@ -10,41 +10,52 @@ module.exports = {
         let lang = args[0] ? args[0].toLowerCase() : null;
         let words = args.slice(1).join(' ');
 
-        // 3. Logic: Kama asipoweka lugha au asipoweka maneno
-        // Hapa tunakagua kama lang ni kodi ya lugha (herufi 2)
+        // 3. Advanced Help Message with 10 Languages & Flags
         if (!lang || lang.length !== 2 || !words) {
-            let tutorial = `😂 *Wewe acha ushamba!* Hujaandika vizuri.\n\n`;
-            tutorial += `❌ *Wrong:* ${config.prefix}${command} ${text || 'habari'}\n`;
-            tutorial += `✅ *Example:* ${config.prefix}${command} en habari\n\n`;
-            tutorial += `\`Language Codes👇 Tool\`\n`;
-            tutorial += `🔹 *EN* - English\n`;
-            tutorial += `🔹 *SW* - Kiswahili\n`;
-            tutorial += `🔹 *AR* - Arabic\n`;
-            tutorial += `🔹 *FR* - French\n`;
-            tutorial += `🔹 *ZH* - Chinese\n\n`;
-            tutorial += `_©2026 ${config.botName} on fire 🔥!_`;
+            let helpMsg = `😂 *STUPID ERROR!* You forgot the format.\n\n`;
+            helpMsg += `🔍 *USAGE:* ${config.prefix}${command} [code] [text]\n`;
+            helpMsg += `💡 *Example:* ${config.prefix}${command} en habari\n\n`;
+            helpMsg += `*SUPPORTED LANGUAGES & CODES 👇*\n`;
+            helpMsg += `🇺🇸 *EN* - English\n`;
+            helpMsg += `🇹🇿 *SW* - Swahili\n`;
+            helpMsg += `🇸🇦 *AR* - Arabic\n`;
+            helpMsg += `🇫🇷 *FR* - French\n`;
+            helpMsg += `🇩🇪 *DE* - German\n`;
+            helpMsg += `🇮🇳 *HI* - Hindi\n`;
+            helpMsg += `🇵🇹 *PT* - Portuguese\n`;
+            helpMsg += `🇪🇸 *ES* - Spanish\n`;
+            helpMsg += `🇷🇺 *RU* - Russian\n`;
+            helpMsg += `🇨🇳 *ZH* - Chinese\n\n`;
+            helpMsg += `_Please provide a 2-letter code first!_`;
             
-            return m.reply(tutorial);
+            return m.reply(helpMsg);
         }
 
-        await m.reply(`🌍 *Translating to ${lang.toUpperCase()}...*`);
-
         try {
-            // 4. API Call (Google Translate API)
+            // 4. API Call
             const res = await axios.get(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${lang}&dt=t&q=${encodeURIComponent(words)}`);
             
             const translation = res.data[0][0][0];
-            const detectedSource = res.data[2];
+            const detectedSource = res.data[2].toLowerCase();
 
-            // 5. Result Output
+            // Mapping language names for the direction info
+            const langNames = {
+                en: "English", sw: "Swahili", ar: "Arabic", fr: "French", de: "German",
+                hi: "Hindi", pt: "Portuguese", es: "Spanish", ru: "Russian", zh: "Chinese"
+            };
+
+            const fromLang = langNames[detectedSource] || detectedSource.toUpperCase();
+            const toLang = langNames[lang] || lang.toUpperCase();
+
+            // 5. Final Output (Full English Pro Max)
             let response = `✨ *TRANSLATION SUCCESS*\n\n`;
-            response += `📝 *Original (${detectedSource.toUpperCase()}):* ${words}\n`;
-            response += `🎯 *Result (${lang.toUpperCase()}):* ${translation}`;
+            response += `${translation}\n\n`;
+            response += `_${fromLang} to ${toLang}_`;
 
             await sock.sendMessage(m.key.remoteJid, { text: response }, { quoted: m });
 
         } catch (err) {
-            await m.reply("❌ *ERROR:* Luha hiyo haipo au API imegoma. Tumia kodi kama *en, sw, fr* nk.");
+            await m.reply("❌ *FATAL ERROR:* Translation failed. Ensure you used a valid 2-letter code.");
         }
     }
 };
