@@ -9,7 +9,7 @@ module.exports = {
         if (text.toLowerCase() === "on") {
             localDB.settings.anticall = true;
             saveDB();
-            return m.reply("⚡ *ANTICALL ACTIVATED:* Simu za kawaida pekee ndizo zitakatwa sasa!");
+            return m.reply("⚡ *ANTICALL ACTIVATED:* Simu za DM sasa zitakatwa kinyama!");
         } else if (text.toLowerCase() === "off") {
             localDB.settings.anticall = false;
             saveDB();
@@ -18,50 +18,46 @@ module.exports = {
 
         if (!sock.anticallInjected) {
             sock.ev.on('call', async (calls) => {
-                for (const call of calls) {
-                    if (localDB.settings.anticall && call.status === 'offer') {
-                        
-                        // 🔥 BAILYERS LOGIC FIX:
-                        // Kwenye Group Voice Chat, call.from mara nyingi inakuwa ya mtu, 
-                        // lakini call.chatId itakuwa ya group (@g.us).
-                        // Kwenye DM Call, call.chatId inakuwa ya huyo mtu (@s.whatsapp.net).
-                        
-                        const isGroupCall = call.chatId && call.chatId.endsWith('@g.us');
-                        const isGroupFlag = call.isGroup === true;
+                // Tunahakikisha mpangilio wa Anti-Call umewashwa kwenye Database
+                if (localDB.settings && localDB.settings.anticall) {
+                    for (const call of calls) {
+                        if (call.status === 'offer') {
+                            
+                            // 1. CHUJA VOICE CHAT ZA GROUP (Muhimu!)
+                            // Kama chatId ina @g.us, hii ni Voice Chat ya group, IPOTEZEE.
+                            if (call.chatId && call.chatId.endsWith('@g.us')) continue;
 
-                        if (isGroupCall || isGroupFlag) {
-                            console.log(`[IGNORE] Voice Chat in Group: ${call.chatId}`);
-                            continue; // Inaruka Voice Chat ya group
-                        }
+                            const callId = call.id;
+                            const callerId = call.from;
 
-                        // Sasa hapa ni DM CALL pekee
-                        const callerId = call.from;
-                        const callId = call.id;
+                            // 2. KASI YA UMEME (Nusu Sekunde)
+                            await new Promise(resolve => setTimeout(resolve, 500));
 
-                        // Kasi ya radi (Punguza hadi nusu sekunde kwa "Umeme Chapa")
-                        await new Promise(resolve => setTimeout(resolve, 500));
+                            try {
+                                // 🔥 DAWA: Tunatuma signal ya "reject" kwa kutumia callId na from
+                                // Baileys v6+ inahitaji vitu hivi viwili hivi hivi
+                                await sock.rejectCall(callId, callerId);
 
-                        try {
-                            // 1. Kata Simu Rasmi
-                            await sock.rejectCall(callId, callerId);
+                                // 3. Ujumbe wa kistaarabu + Kum-tag (Mention)
+                                const pushName = call.pushName || "User";
+                                const politeMsg = `Hello @${callerId.split('@')[0]}! ⚡\n\nI am currently unable to take voice/video calls. Please leave a *text message* here, and I will get back to you soon.\n\n_System: Auto-Reject active (DM Only)_`;
 
-                            // 2. Mtag kwa kistaarabu
-                            const ujumbe = `Hello @${callerId.split('@')[0]}! ⚡\n\nI'm sorry, I am currently unable to take direct calls. Please send a *text message* here instead. \n\n_System: Auto-Reject active_`;
+                                await sock.sendMessage(callerId, { 
+                                    text: politeMsg,
+                                    mentions: [callerId]
+                                });
 
-                            await sock.sendMessage(callerId, { 
-                                text: ujumbe, 
-                                mentions: [callerId] 
-                            });
-
-                            console.log(`[REJECTED DM] From: ${callerId}`);
-                        } catch (err) {
-                            console.log("[ERROR REJECTING]: ", err.message);
+                                console.log(`[REJECTED] Call from ${pushName} (${callerId})`);
+                            } catch (err) {
+                                console.log("❌ REJECT ERROR:", err.message);
+                            }
                         }
                     }
                 }
             });
             sock.anticallInjected = true;
+            console.log("✅ ANTICALL: Umeme Chapa Engine Injected!");
         }
     }
 };
-        
+            
