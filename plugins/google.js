@@ -3,47 +3,45 @@ const axios = require("axios");
 module.exports = {
     command: "google",
     run: async (sock, m, { guard, config, command, text }) => {
-        // 1. Guard System (Unyama wa ulinzi)
         if (!await guard(sock, m, command, config)) return;
-
         if (!text) return m.reply("❌ *ERROR:* Unauliza nini? Mfano: .google nani ni Rais wa Tanzania?");
 
-        await m.reply("🔍 *Searching Google...* ⏳");
+        await m.reply("🔍 *Searching Google for direct answers...* ⏳");
 
         try {
-            // Tunatumia API ya Google Search (Custom Search JSON API)
-            // Kumbuka: Hii inatumia ujanja wa 'google-it' style scraping kama huna API Key
-            const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(text)}`;
+            // Tunatumia API mbadala inayoweza kutoa snippets moja kwa moja
+            const searchUrl = `https://api.screenshotmachine.com/?key=FREE&url=https://www.google.com/search?q=${encodeURIComponent(text)}`;
+            const googleLink = `https://www.google.com/search?q=${encodeURIComponent(text)}`;
             
-            // Hapa tunapata matokeo ya haraka (Snippet)
-            const res = await axios.get(`https://api.screenshotmachine.com/?key=FREE&url=${searchUrl}&device=desktop`); 
-            
-            // Mfumo huu wa 'Pro Max' unakupa Link na Maelezo kidogo
-            // Kwa sababu scraping ya Google ni ngumu, hapa nakupa 'Smart Linker'
-            
+            // Hapa tunatumia Search Engine Scraper (Inachukua muda kidogo lakini inaleta data)
+            const res = await axios.get(`https://google-search-api.vercel.app/api/search?q=${encodeURIComponent(text)}`);
+            const result = res.data.results[0]; // Tunachukua jibu la kwanza kabisa
+
             let response = `🌟 *GOOGLE SEARCH RESULTS* 🌟\n`;
             response += `━━━━━━━━━━━━━━━━━━━━\n\n`;
             response += `🔍 *Query:* ${text}\n\n`;
-            response += `👉 *Bofya hapa kuona majibu yote:* \n${searchUrl}\n\n`;
-            response += `━━━━━━━━━━━━━━━━━━━━\n`;
-            response += `_© ${config.botName} - Search Engine_`;
+            
+            if (result) {
+                response += `📝 *Top Answer:* \n${result.description}\n\n`;
+                response += `🔗 *Source:* ${result.link}\n\n`;
+            } else {
+                response += `⚠️ *Samahani:* Sikuweza kupata muhtasari wa haraka, tafadhali tumia link hapa chini.\n\n`;
+            }
 
-            await sock.sendMessage(m.key.remoteJid, { 
-                text: response,
-                contextInfo: {
-                    externalAdReply: {
-                        title: "GOOGLE SEARCH PRO",
-                        body: `Results for: ${text}`,
-                        thumbnailUrl: "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png",
-                        sourceUrl: searchUrl,
-                        mediaType: 1
-                    }
-                }
-            }, { quoted: m });
+            response += `━━━━━━━━━━━━━━━━━━━━\n`;
+            response += `👉 *Majibu mengine:* \n${googleLink}\n`;
+            response += `━━━━━━━━━━━━━━━━━━━━\n`;
+            response += `_© ${config.botName}- Search 🤳_`;
+
+            await sock.sendMessage(m.key.remoteJid, { text: response }, { quoted: m });
 
         } catch (err) {
-            await m.reply("❌ *FATAL ERROR:* Imeshindwa kuunganisha na Google Servers.");
+            // Fallback kama API imegoma (Inaleta link kama ilivyokuwa mwanzo)
+            let fallback = `🌟 *GOOGLE SEARCH (LINK ONLY)* 🌟\n\n`;
+            fallback += `🔍 *Query:* ${text}\n\n`;
+            fallback += `👉 *Bofya hapa:* https://www.google.com/search?q=${encodeURIComponent(text)}`;
+            await m.reply(fallback);
         }
     }
 };
-      
+                                                                                     
