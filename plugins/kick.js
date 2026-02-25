@@ -1,81 +1,57 @@
 module.exports = {
-    name: "kick",
-    run: async (sock, m, { guard, config, command }) => {
+run: async (sock, m, { guard, config, command, text, isOwner }) => {
+    // 1️⃣ Guard System - hakikisha ni group
+    const canRun = await guard(sock, m, command, config, { groupOnly: true });
+    if (!canRun) return;
 
-        const canRun = await guard(sock, m, command, config, { groupOnly: true });
-        if (!canRun) return;
+    const from = m.key.remoteJid;
 
-        const from = m.key.remoteJid;
+    // 2️⃣ Owner Reference kutoka config
+    // Ikiwa unataka session ya bot pia iende, unaweza ku-add sock.user.id
+    const ownerNumbers = config.ownerNumber.map(num => num.includes("@s.whatsapp.net") ? num : num + "@s.whatsapp.net");
 
-        // 🔥 CLEAN BOT ID (v7 safe without jidDecode)
-        const botId = sock.user.id.split("@")[0].split(":")[0] + "@s.whatsapp.net";
+    // 3️⃣ Pata metadata ya group
+    const groupMetadata = await sock.groupMetadata(from);
+    const participants = groupMetadata.participants;
 
-        // 🔥 CLEAN SENDER ID
-        const senderRaw = m.key.participant || m.key.remoteJid;
-        const sender = senderRaw.split("@")[0].split(":")[0] + "@s.whatsapp.net";
+    // 4️⃣ Angalia kama ownerNumbers yoyote ipo kama admin
+    const isBotAdmin = participants.some(p => ownerNumbers.includes(p.id) && p.admin !== null);
 
-        // 📦 GET GROUP DATA
-        const groupMetadata = await sock.groupMetadata(from);
-        const participants = groupMetadata.participants;
-
-        // 👑 CHECK ADMIN STATUS
-        const isBotAdmin = participants.some(p => p.id === botId && p.admin !== null);
-        const isSenderAdmin = participants.some(p => p.id === sender && p.admin !== null);
-
-        if (!isSenderAdmin) {
-            return sock.sendMessage(from, {
-                text: "❌ PERMISSION DENIED: You must be ADMIN."
-            }, { quoted: m });
-        }
-
-        if (!isBotAdmin) {
-            return sock.sendMessage(from, {
-                text: "❌ BOT must be ADMIN in this group."
-            }, { quoted: m });
-        }
-
-        // 🎯 GET TARGET (mention or reply)
-        let users = m.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
-
-        if (m.message?.extendedTextMessage?.contextInfo?.participant) {
-            users.push(m.message.extendedTextMessage.contextInfo.participant);
-        }
-
-        if (users.length === 0) {
-            return sock.sendMessage(from, {
-                text: "🔍 Tag user or reply to their message."
-            }, { quoted: m });
-        }
-
-        let target = users[0];
-        target = target.split("@")[0].split(":")[0] + "@s.whatsapp.net";
-
-        // 🛡️ PROTECTION SYSTEM
-        if (target === botId) {
-            return sock.sendMessage(from, {
-                text: "🛡️ I can't remove myself."
-            }, { quoted: m });
-        }
-
-        if (config.ownerNumber?.includes(target.split("@")[0])) {
-            return sock.sendMessage(from, {
-                text: "👑 I can't remove my owner."
-            }, { quoted: m });
-        }
-
-        // 🚀 EXECUTE KICK
-        try {
-            await sock.groupParticipantsUpdate(from, [target], "remove");
-
-            await sock.sendMessage(from, {
-                text: `🚀 User @${target.split("@")[0]} has been kicked!`,
-                mentions: [target]
-            }, { quoted: m });
-
-        } catch (err) {
-            await sock.sendMessage(from, {
-                text: "❌ FAILED: Unable to kick user."
-            }, { quoted: m });
-        }
+    if (!isBotAdmin) {
+        return sock.sendMessage(from, {
+            text: "❌ *PERMISSION DENIED:* My owner number must be an *ADMIN* in this group to perform this action."
+        }, { quoted: m });
     }
+
+    // 5️⃣ Tafuta nani anapaswa kukatwa
+    let users = m.message.extendedTextMessage?.contextInfo?.mentionedJid || [];
+    if (m.message.extendedTextMessage?.contextInfo?.participant) {
+        users.push(m.message.extendedTextMessage.contextInfo.participant);
+    }
+
+    if (users.length === 0) {
+        return sock.sendMessage(from, { text: "🔍 *USAGE:* Tag a user or reply to their message to kick them." }, { quoted: m });
+    }
+
+    const target = users[0];
+
+    // 6️⃣ Protection: usikate owner au mwenyewe
+    if (ownerNumbers.includes(target)) {
+        return sock.sendMessage(from, { text: "🛡️ I cannot remove the owner from the group." }, { quoted: m });
+    }
+
+    // 7️⃣ Execution - kick user
+    try {
+        await sock.groupParticipantsUpdate(from, [target], "remove");
+
+        await sock.sendMessage(from, {
+            text: `🚀 *SYSTEM PURGE:* User @${target.split('@')[0]} has been kicked out!`,
+            mentions: [target]
+        }, { quoted: m });
+
+    } catch (err) {
+        await sock.sendMessage(from, { text: `❌ *FAILED:* Error occurred while trying to kick the user.` }, { quoted: m });
+        console.log("Kick error:", err);
+    }
+}
 };
