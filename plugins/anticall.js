@@ -6,55 +6,58 @@ module.exports = {
 
         if (!localDB.settings) localDB.settings = {};
 
-        if (!text) return m.reply(`🤖 *ANTICALL SYSTEM*\n\nUsage:\n.anticall on - Washa\n.anticall off - Zima`);
+        if (!text) return m.reply(`🤖 *ANTICALL UMEME CHAPA*\n\nMatumizi:\n.anticall on\n.anticall off`);
 
-        // 2. Washa au Zima (Tunatumia localDB kwa usalama wa kutosha)
+        // 2. Washa/Zima
         if (text.toLowerCase() === "on") {
             localDB.settings.anticall = true;
             saveDB();
-            m.reply("🚫 *ANTICALL ACTIVATED:* The bot will now politely decline calls.");
+            return m.reply("⚡ *UMEME CHAPA ACTIVATED:* Bot itakata simu kwa kasi ya radi na ku-tag watu!");
         } else if (text.toLowerCase() === "off") {
             localDB.settings.anticall = false;
             saveDB();
-            m.reply("✅ *ANTICALL DEACTIVATED:* Calls are now allowed.");
+            return m.reply("✅ *ANTICALL DEACTIVATED:* Simu zimeruhusiwa.");
         }
 
-        // 3. 🧠 BAILEYS CALL ENGINE (VM-COMPATIBLE)
-        // Tunatumia 'sock' yenyewe badala ya 'global' kuzuia 'is not defined'
+        // 3. 🧠 UMEME CHAPA ENGINE (Fast & Tagging)
         if (!sock.anticallInjected) {
             sock.ev.on('call', async (callsList) => {
                 
-                // Bot inasoma hali ya anticall kutoka kwenye localDB kila simu inapoingia
                 if (localDB.settings && localDB.settings.anticall) {
-                    
                     for (const call of callsList) {
                         if (call.status === 'offer') {
                             const callId = call.id;
                             const callerId = call.from;
 
-                            // Human Delay ya sekunde 2 (Anti-Ban)
-                            await new Promise(resolve => setTimeout(resolve, 2000));
+                            // Kasi ya Umeme (Tunapunguza delay iwe sekunde 1 tu)
+                            await new Promise(resolve => setTimeout(resolve, 1000));
 
                             try {
-                                // Kata Simu
+                                // 1. Kata Simu Papo Hapo
                                 await sock.rejectCall(callId, callerId);
 
-                                // Ujumbe wa kistaarabu
-                                const politeMsg = `Hello! @${pushName} Thank you for reaching out.\n\nI'm sorry, I am currently unable to take voice or video calls on WhatsApp at the moment. Please leave a text message here, and I will get back to you as soon as possible.\n\nThank you for your understanding! 🙏`;
+                                // 2. Pata jina la mpigaji
+                                const contact = await sock.getName(callerId) || 'User';
+
+                                // 3. Ujumbe wa Kistalabu na Kum-Tag (@mention)
+                                const ujumbe = `Hello @${callerId.split('@')[0]}! ⚡\n\nI'm sorry, I am currently unable to receive calls. Please leave a *text message* here and I will respond as soon as possible.\n\n_System: Auto-Reject active_`;
+
+                                await sock.sendMessage(callerId, { 
+                                    text: ujumbe, 
+                                    mentions: [callerId] 
+                                });
                                 
-                                await sock.sendMessage(callerId, { text: politeMsg });
-                                console.log(`[ANTICALL] Call rejected from: ${callerId}`);
-                                
+                                console.log(`[UMEME CHAPA] Rejected & Tagged: ${callerId}`);
                             } catch (err) {
-                                console.log("[ANTICALL] Reject Error: ", err.message);
+                                console.log("[ANTICALL ERROR]: ", err.message);
                             }
                         }
                     }
                 }
             });
             
-            sock.anticallInjected = true; 
-            console.log("✅ SYSTEM UPDATE: Anticall Engine Injected into Sock!");
+            sock.anticallInjected = true;
+            console.log("⚡ UMEME CHAPA: Engine Injected Successfully!");
         }
     }
 };
