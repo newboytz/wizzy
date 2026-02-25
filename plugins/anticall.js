@@ -5,66 +5,57 @@ module.exports = {
         if (!await guard(sock, m, command, config)) return;
 
         if (!localDB.settings) localDB.settings = {};
-        
-        // 2. Set Global Flag to fix Memory Closure Bug
-        if (global.isAnticallOn === undefined) {
-            global.isAnticallOn = localDB.settings.anticall || false;
-        }
 
         if (!text) return m.reply(`🤖 *ANTICALL SYSTEM*\n\nUsage:\n.anticall on - Washa\n.anticall off - Zima`);
 
+        // 2. Washa au Zima (Tunatumia localDB kwa usalama wa kutosha)
         if (text.toLowerCase() === "on") {
             localDB.settings.anticall = true;
-            global.isAnticallOn = true; // Tunasave kwenye Global Memory
             saveDB();
             m.reply("🚫 *ANTICALL ACTIVATED:* The bot will now politely decline calls.");
         } else if (text.toLowerCase() === "off") {
             localDB.settings.anticall = false;
-            global.isAnticallOn = false;
             saveDB();
             m.reply("✅ *ANTICALL DEACTIVATED:* Calls are now allowed.");
         }
 
-        // 3. 🧠 BAILEYS CALL ENGINE (Official Approach)
-        if (!global.anticallInjected) {
-            // Baileys inaleta 'callsList' kama Array (WACallEvent[])
+        // 3. 🧠 BAILEYS CALL ENGINE (VM-COMPATIBLE)
+        // Tunatumia 'sock' yenyewe badala ya 'global' kuzuia 'is not defined'
+        if (!sock.anticallInjected) {
             sock.ev.on('call', async (callsList) => {
                 
-                // Bot inasoma kwenye Global Memory ambayo haifutiki
-                if (global.isAnticallOn) {
+                // Bot inasoma hali ya anticall kutoka kwenye localDB kila simu inapoingia
+                if (localDB.settings && localDB.settings.anticall) {
                     
-                    // Tunapita kwenye kila tukio la simu lililoingia
                     for (const call of callsList) {
-                        
-                        // Tunahakikisha ni 'offer' (Mtu anapiga) na sio 'ringing' au 'reject'
                         if (call.status === 'offer') {
                             const callId = call.id;
-                            const callerId = call.from; // Hii ndio Jid ya mpigaji
+                            const callerId = call.from;
 
-                            // 1. Human Delay: Tunangoja sekunde 2 WhatsApp isitu-ban
+                            // Human Delay ya sekunde 2 (Anti-Ban)
                             await new Promise(resolve => setTimeout(resolve, 2000));
 
                             try {
-                                // 2. Kata Simu: Method rasmi ya Baileys
+                                // Kata Simu
                                 await sock.rejectCall(callId, callerId);
 
-                                // 3. Tuma Ujumbe (Polite Message)
+                                // Ujumbe wa kistaarabu
                                 const politeMsg = `Hello! Thank you for reaching out.\n\nI'm sorry, I am currently unable to take voice or video calls on WhatsApp at the moment. Please leave a text message here, and I will get back to you as soon as possible.\n\nThank you for your understanding! 🙏`;
                                 
                                 await sock.sendMessage(callerId, { text: politeMsg });
-                                console.log(`[ANTICALL] Successfully rejected call from: ${callerId}`);
+                                console.log(`[ANTICALL] Call rejected from: ${callerId}`);
                                 
                             } catch (err) {
-                                console.log("[ANTICALL] Error rejecting call: ", err.message);
+                                console.log("[ANTICALL] Reject Error: ", err.message);
                             }
                         }
                     }
                 }
             });
             
-            global.anticallInjected = true;
-            console.log("✅ SYSTEM UPDATE: Baileys Anticall Engine Injected!");
+            sock.anticallInjected = true; 
+            console.log("✅ SYSTEM UPDATE: Anticall Engine Injected into Sock!");
         }
     }
 };
-                
+            
