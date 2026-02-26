@@ -6,17 +6,40 @@
 </p>
 
 ---
+### 🛠️ Tools Used
+- **Termux** (Android Terminal)
+- **Acode** (Code Editor)
+- **Python Flask** (Backend)
+### 🛠️ How to Install
+Run these commands in your **Termux** or terminal:
+### 1. Termux Setup
+# 🤖 QB PRO MAX SETUP
 
-## 🛡️ MAELEZO YA MFUMO
-Hii ni bot ya kisasa ya WhatsApp iliyojengwa kwa **Node.js** na **Baileys**. Inatumia mfumo wa siri wa **Machine Language (Binary Mode)** kulinda kodi zako zisipate kuonekana kirahisi (Obfuscated).
+## 📥 Jinsi ya Kupakua
+Andika hizi command kwenye Termux ili kupata bot:
 
----
-
-## 🛠️ JINSI YA KUWEKA (INSTALLATION)
-
-Fuata hatua hizi kwenye **Termux** au **VPS**:
-
-### 1️⃣ Pakua na Sakinisha Mazingira
 ```bash
 pkg update && pkg upgrade -y
-pkg install nodejs git zip termux-api -y
+pkg install nodejs
+```
+## 🔥soket 
+```bash
+npm install @whiskeysockets/baileys pino
+```
+
+## 🚀 Jinsi ya Kuwasha
+Baada ya kuingia kwenye folder, washa bot kwa:
+
+```bash
+chmod +x install
+./install
+```
+
+## ⚡share 
+```bash
+pkg install termux-api -y
+termux-share -a send BOT_.zip
+```
+---
+> **Kumbuka:** Hakikisha internet yako ipo sawa kabla ya kuanza usakinishaji.
+> 
