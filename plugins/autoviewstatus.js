@@ -1,47 +1,55 @@
-const { guard } = require('../helpers/permission');
-
 module.exports = {
-    name: "autoviewstatus",
-    description: "Toggle auto-view status ON/OFF (default from config)",
-    run: async (sock, m, { config, command, text }) => {
-
+    command: ["autostatus", "statusview"],
+    run: async (sock, m, { guard, config, command, text, localDB, saveDB }) => {
+        // 1. Guard System (Owner Only)
         if (!await guard(sock, m, command, config)) return;
 
-        // Ensure default
-        if (typeof config.autoViewStatus === 'undefined') {
-            config.autoViewStatus = true;
+        if (!localDB.settings) localDB.settings = {};
+
+        if (!text) return m.reply(`🤖 *AUTO-STATUS SYSTEM*\n\nUsage:\n.autostatus on - Enable\n.autostatus off - Disable`);
+
+        // 2. Toggle Settings
+        if (text.toLowerCase() === "on") {
+            localDB.settings.autostatus = true;
+            saveDB();
+            m.reply("🟢 *AUTO-STATUS VIEW:* Successfully Activated! The bot will now view all statuses automatically.");
+        } else if (text.toLowerCase() === "off") {
+            localDB.settings.autostatus = false;
+            saveDB();
+            m.reply("🔴 *AUTO-STATUS VIEW:* Deactivated. The bot will no longer view statuses.");
         }
 
-        const arg = text.trim().toLowerCase();
-        if (arg === 'on') {
-            config.autoViewStatus = true;
-            await m.reply("✅ Auto-View Status is now ON");
-        } else if (arg === 'off') {
-            config.autoViewStatus = false;
-            await m.reply("❌ Auto-View Status is now OFF");
-        } else {
-            await m.reply(`⚙️ Current Auto-View Status: ${config.autoViewStatus ? "ON" : "OFF"}\nUse .autoviewstatus on/off to toggle`);
-        }
-    },
+        // 3. 🧠 BAILEYS v7 STATUS ENGINE (Global Injection)
+        if (!sock.statusInjected) {
+            sock.ev.on('messages.upsert', async ({ messages }) => {
+                const msg = messages[0];
+                
+                // Filter: Check if the message is from 'status@broadcast'
+                if (msg.key && msg.key.remoteJid === 'status@broadcast') {
+                    
+                    // Check if Auto-Status is enabled in Database
+                    if (localDB.settings && localDB.settings.autostatus) {
+                        try {
+                            // 🔥 OFFICIAL BAILEYS v7 METHOD: Mark message as read
+                            // This sends the 'viewed' receipt to the status poster
+                            await sock.readMessages([msg.key]);
 
-    // ✅ This function runs automatically in bot core
-    init: (sock, config) => {
-        if (!config.autoViewStatus) return;
+                            const sender = msg.key.participant || msg.key.remoteJid;
+                            console.log(`✨ [STATUS VIEWED] Successfully viewed status from: ${sender}`);
 
-        sock.ev.on("messages.upsert", async (chatUpdate) => {
-            try {
-                const m = chatUpdate.messages[0];
-                if (!m.message) return;
-                // Status broadcasts are sent as remoteJid === "status@broadcast"
-                if (!m.key.fromMe && m.key.remoteJid === "status@broadcast") {
-                    if (config.autoViewStatus) {
-                        await sock.sendReadReceipt(m.key.remoteJid, m.key.participant, [m.key.id]);
-                        console.log(`👁️ Status from ${m.key.participant.split("@")[0]} auto-viewed`);
+                            // Optional: Send a reaction to the status (e.g., ❤️)
+                            // await sock.sendMessage('status@broadcast', { react: { text: '❤️', key: msg.key } }, { statusJidList: [sender] });
+
+                        } catch (err) {
+                            console.error("❌ STATUS VIEW ERROR:", err.message);
+                        }
                     }
                 }
-            } catch (e) {
-                console.log("⚠️ Auto-View Error:", e.message);
-            }
-        });
+            });
+
+            sock.statusInjected = true;
+            console.log("✅ STATUS ENGINE: Baileys v7 Auto-View Injected!");
+        }
     }
 };
+                    
