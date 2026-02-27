@@ -105,13 +105,22 @@ const STORE_FILE = path.join(__dirname, ".system_data.enc");
 // Agent ya kasi kwa ajili ya plugins
 const httpsAgent = new https.Agent({ keepAlive: true });
 
-// ================= HELPERS FOR ENCRYPTION =================
-const obscure = (text) => Buffer.from(text).toString('base64');
-const deObscure = (text) => Buffer.from(text, 'base64').toString('utf8');
+// ================ HELPERS FOR BINARY ENCRYPTION ================
+// Hii inageuza maandishi kuwa "Machine Language" (Hex Buffer)
+const obscure = (text) => Buffer.from(text, 'utf8').toString('hex');
+
+// Hii inarudisha "Machine Language" kuwa kodi ya kawaida ili bot isome
+const deObscure = (hex) => Buffer.from(hex, 'hex').toString('utf8');
 
 // ================= VERIFY SYSTEM (Bypass Added) =================
+const registrationCache = new Map();
 async function verifyClient(config) {
     try {
+              // 1. Angalia kwanza kwenye RAM Cache
+        if (registrationCache.has(config.clientId)) {
+            console.log(`${rc.cyan}⚡ [RAM] Usajili umepatikana papo hapo!`);
+            return registrationCache.get(config.clientId);
+        }
         process.stdout.write(`${rc.yellow}🔍 Inakagua usajili wa ${rc.bold}${config.clientId}${rc.reset}${rc.yellow}...${rc.reset}\r`);
         
         let clientData = null;
@@ -129,11 +138,10 @@ async function verifyClient(config) {
                 const rawData = verifyRes.data?.data;
                 clientData = rawData?.[config.clientId] ? rawData[config.clientId] : rawData;
             } catch (apiErr) {
-                // HAPA NDIPO ENOTFOUND INAZUIWA (Fail-safe Bypass)
-                console.log(`\n${rc.yellow}⚠️ API ya nje imegoma, naruhusu bot iwake kwa usalama wako...${rc.reset}`);
-                return { success: true, allowedPlugins: ["all"], clientData: { name: config.ownerName || "Owner", plan: "Dev Bypass" } };
-            }
-        }
+    console.log(`\n${rc.red}❌ API haipatikani na mtumiaji hayupo kwenye Database!${rc.reset}`);
+    return { success: false }; 
+}
+
 
         if (!clientData || clientData.status !== "active") {
             // Kama wewe ni owner ruhusu hata kama database imegoma
@@ -148,16 +156,21 @@ async function verifyClient(config) {
         console.log(`${rc.cyan}👤 Owner: ${rc.bold}${clientData.name || config.ownerName}${rc.reset}`);
         console.log(`${rc.cyan}🛡️ Plan: ${rc.bold}${clientData.plan || 'Premium'}${rc.reset}\n`);
 
-        return {
+                const verificationResult = {
             success: true,
             allowedPlugins: Array.isArray(clientData.plugins) ? clientData.plugins : ["all"],
             clientData
         };
-    } catch (err) {
-        console.log(`\n${rc.red}❌ Verification Error: ${err.message}. Bot inawaka kinguvu.${rc.reset}`);
-        return { success: true, allowedPlugins: ["all"] }; // Fail-safe: Bot haiwezi kujizima kizembe
+
+        // 2. Tunza kwenye RAM kwa ajili ya matumizi ya baadae
+        registrationCache.set(config.clientId, verificationResult);
+        
+                return verificationResult; // Huu ni mstari wa 165
+    } catch (err) { // Huu ni mstari wa 166
+        console.log(`\n${rc.red}❌ Verification Error: ${err.message}. Bot inazima.`);
+        return { success: false };
     }
-}
+} 
 
 // ================= START BOT =================
 const pluginCache = new Map();
@@ -542,3 +555,4 @@ if (m.message?.protocolMessage && (m.message.protocolMessage.type === 0 || m.mes
 }
 
 startBot();
+
