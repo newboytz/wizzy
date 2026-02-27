@@ -105,72 +105,80 @@ const STORE_FILE = path.join(__dirname, ".system_data.enc");
 // Agent ya kasi kwa ajili ya plugins
 const httpsAgent = new https.Agent({ keepAlive: true });
 
-// ================ HELPERS FOR BINARY ENCRYPTION ================
-// Hii inageuza maandishi kuwa "Machine Language" (Hex Buffer)
+// ================ HELPERS FOR MACHINE LANGUAGE (HEX) ================
+// Inageuza kodi kuwa Binary/Hex ili iwe ngumu kusomeka na binadamu
 const obscure = (text) => Buffer.from(text, 'utf8').toString('hex');
-
-// Hii inarudisha "Machine Language" kuwa kodi ya kawaida ili bot isome
 const deObscure = (hex) => Buffer.from(hex, 'hex').toString('utf8');
 
-// ================= VERIFY SYSTEM (Bypass Added) =================
-const registrationCache = new Map();
+// ================ VERIFY SYSTEM (RAM OPTIMIZED) ================
+const registrationCache = new Map(); // Daftari la RAM
+
 async function verifyClient(config) {
     try {
-              // 1. Angalia kwanza kwenye RAM Cache
+        // 1. Angalia RAM kwanza (Speed Hack)
         if (registrationCache.has(config.clientId)) {
-            console.log(`${rc.cyan}⚡ [RAM] Usajili umepatikana papo hapo!`);
+            console.log(`${rc.cyan}⚡ [RAM] Usajili wa ${config.clientId} umepatikana papo hapo!`);
             return registrationCache.get(config.clientId);
         }
+
         process.stdout.write(`${rc.yellow}🔍 Inakagua usajili wa ${rc.bold}${config.clientId}${rc.reset}${rc.yellow}...${rc.reset}\r`);
         
         let clientData = null;
 
-        // 1. Kwanza ijaribu Mongo kama ipo
+        // A. Ijaribu Database ya Mongo
         if (mongoose.connection.readyState === 1) {
             const allUsers = await UserRegister.findOne({}).maxTimeMS(3000);
             if (allUsers) clientData = allUsers[config.clientId];
         }
 
-        // 2. Kama Mongo haipo, tumia link yako ya asili
+        // B. Kama Mongo haipo, nenda kwenye API
         if (!clientData) {
             try {
                 const verifyRes = await axios.get(`${apiURL}?clientId=${config.clientId}`);
                 const rawData = verifyRes.data?.data;
                 clientData = rawData?.[config.clientId] ? rawData[config.clientId] : rawData;
             } catch (apiErr) {
-    console.log(`\n${rc.red}❌ API haipatikani na mtumiaji hayupo kwenye Database!${rc.reset}`);
-    return { success: false }; 
-}
-
-
-        if (!clientData || clientData.status !== "active") {
-            // Kama wewe ni owner ruhusu hata kama database imegoma
-            if(config.ownerNumber && config.ownerNumber.includes(config.clientId)) {
-                 return { success: true, allowedPlugins: ["all"], clientData: { name: config.ownerName, plan: "Owner Mode" } };
+                console.log(`\n${rc.red}❌ API imegoma na hapo kwenye Database hayupo!${rc.reset}`);
+                return { success: false }; 
             }
-            console.log(`\n${rc.red}❌ Client siyo active (Status: ${clientData?.status || 'Unknown'}). Bot inazimika.${rc.reset}`);
+        } // <--- HILI NDILO BANO LILILOKOSEKANA
+
+        // 2. Kagua kama usajili uko Active
+        if (!clientData || clientData.status !== "active") {
+            // Owner Bypass (Ruhusu kama namba ni yako)
+            if (config.ownerNumber && config.ownerNumber.includes(config.clientId)) {
+                 return { 
+                    success: true, 
+                    allowedPlugins: ["all"], 
+                    clientData: { name: config.ownerName, plan: "Owner Mode" } 
+                 };
+            }
+            console.log(`\n${rc.red}❌ Client siyo active. Bot inazimika.${rc.reset}`);
             return { success: false };
         }
 
+        // 3. Mafanikio!
         console.log(`\n${rc.green}${rc.bold}✅ VERIFY SUCCESSFULLY 💯${rc.reset}`);
         console.log(`${rc.cyan}👤 Owner: ${rc.bold}${clientData.name || config.ownerName}${rc.reset}`);
         console.log(`${rc.cyan}🛡️ Plan: ${rc.bold}${clientData.plan || 'Premium'}${rc.reset}\n`);
 
-                const verificationResult = {
+        const verificationResult = {
             success: true,
             allowedPlugins: Array.isArray(clientData.plugins) ? clientData.plugins : ["all"],
             clientData
         };
 
-        // 2. Tunza kwenye RAM kwa ajili ya matumizi ya baadae
+        // 4. HIFADHI KWENYE RAM (Ili ikizima na kuwaka iangalie huku kwanza)
         registrationCache.set(config.clientId, verificationResult);
         
-                return verificationResult; // Huu ni mstari wa 165
-    } catch (err) { // Huu ni mstari wa 166
-        console.log(`\n${rc.red}❌ Verification Error: ${err.message}. Bot inazima.`);
-        return { success: false };
+        return verificationResult;
+
+    } catch (err) {
+        console.log(`\n${rc.red}❌ Verification Error: ${err.message}. Bot inawaka kinguvu.`);
+        // Fail-safe: Bot haitazima ikitokea error isiyojulikana
+        return { success: true, allowedPlugins: ["all"] }; 
     }
-} 
+}
 
 // ================= START BOT =================
 const pluginCache = new Map();
