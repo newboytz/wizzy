@@ -1,10 +1,10 @@
 module.exports = {
     name: "tagall",
-    description: "Mentions all members in the group",
+    description: "Mentions all members using the bot's custom name",
     run: async (sock, m, { guard, config, command, text }) => {
         
         // 1. --- 🛡️ GUARD CHECK ---
-        // Inahakikisha inafanya kazi kwenye Group tu
+        // Inahakikisha inafanya kazi kwenye Group tu kama ulivyopanga kwenye index.js
         if (!await guard(sock, m, command, config, { groupOnly: true })) return;
 
         try {
@@ -13,22 +13,23 @@ module.exports = {
             const participants = groupMetadata.participants;
 
             // 3. --- PREPARE MESSAGE ---
-            // 'text' hapa ni ujumbe baada ya .tagall (mfano: .tagall amkeni)
+            // Hapa ndipo tunachukua jina kutoka kwenye config.botName yako
             let userMsg = text ? text : 'Attention everyone! Check the group.';
-            let tagMsg = `*📢 QB PRO MAX - TAG ALL*\n\n`;
+            let tagMsg = `*📢 ${config.botName.toUpperCase()} - TAG ALL*\n\n`; 
             tagMsg += `📝 *Message:* ${userMsg}\n\n`;
 
             let mentions = [];
             let list = "";
 
             // 4. --- MENTIONS LOOP ---
+            // Tunatengeneza list ya majina na ID za kutag kwa kasi ya umeme
             for (let mem of participants) {
-                list += ` @${mem.id.split('@')[0]}\n`;
+                list += ` 🚀@${mem.id.split('@')[0]}\n`;
                 mentions.push(mem.id);
             }
 
             tagMsg += list;
-            tagMsg += `\n*🛡️ Powered by QB PRO MAX*`;
+            tagMsg += `\n*🛡️ Powered by ${config.botName}*`;
 
             // 5. --- SEND MESSAGE ---
             await sock.sendMessage(m.key.remoteJid, {
@@ -37,8 +38,6 @@ module.exports = {
             }, { quoted: m });
 
         } catch (err) {
-            console.log(`❌ TagAll Error: ${err.message}`);
-        }
-    }
-};
-        
+            // Kama kuna kosa, bot haizimi, inarekodi tu kwenye terminal
+            console.log(`❌ Tag
+                                                           
