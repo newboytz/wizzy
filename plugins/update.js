@@ -24,7 +24,7 @@ module.exports = {
 
             // Success Message
             await sock.sendMessage(m.key.remoteJid, { 
-                text: "✅ *REFRESHED SUCCESS!*\n\nRAM imesafishwa na storage ya plugins imefutwa. Sasa bot itapakua plugins mpya moja kwa moja kutoka cloud." 
+                text: "✅ *REFRESHED SUCCESS!*\n\nRAM 0." 
             }, { quoted: m });
 
         } catch (err) {
