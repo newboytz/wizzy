@@ -1,10 +1,10 @@
 module.exports = {
     name: "tagall",
-    description: "Mentions all members using the bot's custom name",
+    description: "Mentions everyone in the group",
     run: async (sock, m, { guard, config, command, text }) => {
         
         // 1. --- 🛡️ GUARD CHECK ---
-        // Inahakikisha inafanya kazi kwenye Group tu kama ulivyopanga kwenye index.js
+        // Inahakikisha inafanya kazi kwenye Group tu
         if (!await guard(sock, m, command, config, { groupOnly: true })) return;
 
         try {
@@ -13,7 +13,7 @@ module.exports = {
             const participants = groupMetadata.participants;
 
             // 3. --- PREPARE MESSAGE ---
-            // Hapa ndipo tunachukua jina kutoka kwenye config.botName yako
+            // Inatumia jina la bot yako kutoka kwenye config
             let userMsg = text ? text : 'Attention everyone! Check the group.';
             let tagMsg = `*📢 ${config.botName.toUpperCase()} - TAG ALL*\n\n`; 
             tagMsg += `📝 *Message:* ${userMsg}\n\n`;
@@ -22,9 +22,8 @@ module.exports = {
             let list = "";
 
             // 4. --- MENTIONS LOOP ---
-            // Tunatengeneza list ya majina na ID za kutag kwa kasi ya umeme
             for (let mem of participants) {
-                list += ` 🚀@${mem.id.split('@')[0]}\n`;
+                list += ` @${mem.id.split('@')[0]}\n`;
                 mentions.push(mem.id);
             }
 
@@ -38,6 +37,9 @@ module.exports = {
             }, { quoted: m });
 
         } catch (err) {
-            // Kama kuna kosa, bot haizimi, inarekodi tu kwenye terminal
-            console.log(`❌ Tag
-                                                           
+            // Inarekodi kosa bila kuua mfumo
+            console.log(`❌ TagAll Error: ${err.message}`);
+        }
+    }
+}; // <--- HAKIKISHA HILI BANO LIPO!
+                
