@@ -1,30 +1,32 @@
-case 'tagall': {
-    // 1. Ulinzi wa Guard (Group Only) kama ulivyoomba
+// 📢 TAG ALL - QB PRO MAX EDITION (English)
+if (command === 'tagall' || command === 'tag') {
+    // 1. Guard Protection (Group Only)
     if (!await guard(sock, m, command, config, { groupOnly: true })) return;
 
     try {
-        // 2. Pata orodha ya wanachama wote kwenye group
+        // 2. Fetch Group Participants
         const groupMetadata = await sock.groupMetadata(m.key.remoteJid);
         const participants = groupMetadata.participants;
 
-        // 3. Andaa ujumbe na mentions
-        let message = `*📢 TAG ALL - ${config.botName}*\n\n`;
-        message += `📝 *MASSAGE:* ${m.text || 'Amka amka! Kuna jambo huku.'}\n\n`;
+        // 3. Prepare the Message - (m.text captures the message after the command)
+        let userMsg = m.text ? m.text : 'Wake up everyone! Attention needed.';
+        let tagMsg = `*📢 QB PRO MAX - TAG ALL*\n\n`;
+        tagMsg += `📝 *Message:* ${userMsg}\n\n`;
 
         let mentions = [];
-        for (let participant of participants) {
-            message += ` @${participant.id.split('@')[0]}\n`;
-            mentions.push(participant.id);
+        for (let mem of participants) {
+            tagMsg += ` @${mem.id.split('@')[0]}\n`;
+            mentions.push(mem.id);
         }
 
-        // 4. Tuma ujumbe wenye "Super Mentions"
+        // 4. Send with Mentions
         await sock.sendMessage(m.key.remoteJid, {
-            text: message,
+            text: tagMsg,
             mentions: mentions
         }, { quoted: m });
 
     } catch (err) {
-        console.error(`${rc.red}❌ TagAll Error: ${err.message}${rc.reset}`);
+        console.log(`❌ TagAll Error: ${err.message}`);
     }
-    break;
-}
+            }
+        
