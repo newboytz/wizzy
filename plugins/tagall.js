@@ -1,45 +1,47 @@
 /**
- * PLUGIN: TagAll (QB PRO MAX)
- * Structure: Optimized for Dynamic VM Loader
+ * TAGALL PLUGIN (English Version)
+ * Optimized for QB PRO MAX Dynamic Loader
  */
 
 module.exports.run = async (sock, m, { config, text, guard, command }) => {
-    // 1. Ulinzi wa Guard (Group Only) - Unatumia logic uliyoweka kwenye index.js
-    // Hii inazuia plugin kuwaka kwenye DM na kuleta error
+    // 1. Guard System: Inahakikisha inafanya kazi kwenye Group pekee
+    // Hii inatumia ule ulinzi wako ulioko kwenye mstari wa 178 wa index.js
     if (!await guard(sock, m, command, config, { groupOnly: true })) return;
 
     try {
-        // 2. Pata orodha ya wanachama kwanza (Vuta kutoka Cache/Metadata)
+        // 2. Fetch Group Participants kwa haraka
         const groupMetadata = await sock.groupMetadata(m.key.remoteJid);
         const participants = groupMetadata.participants;
 
-        // 3. Andaa kichwa cha habari na ujumbe (Dynamic Message)
-        let message = `*📢 TAG ALL - ATTENTION EVERYONE*\n\n`;
-        message += `📝 *Message:* ${text || 'No specific message provided.'}\n\n`;
+        // 3. Prepare Message Content
+        // 'text' hapa inachukua maneno yaliyoandikwa baada ya .tagall
+        let userMsg = text ? text : 'Attention everyone! Please check the group.';
+        let tagMsg = `*📢 QB PRO MAX - TAG ALL*\n\n`;
+        tagMsg += `📝 *Message:* ${userMsg}\n\n`;
 
-        // 4. Mzunguko wa Mentions (High Speed Loop)
-        // Tunatengeneza array ya mentions na list ya majina kwa mpigo mmoja
         let mentions = [];
         let list = "";
 
+        // 4. Mentions Loop - Inatengeneza list ya majina na ID za kutag
         for (let mem of participants) {
             list += ` @${mem.id.split('@')[0]}\n`;
             mentions.push(mem.id);
         }
 
-        message += list;
-        message += `\n*🛡️ Powered by QB PRO MAX*`;
+        tagMsg += list;
 
-        // 5. Tuma ujumbe wenye "Blue Tags" (Notification kwa kila mtu)
-        // Tunatumia m.key.remoteJid kwa sababu ndio target yetu
+        // 5. Send Message with Mentions
+        // Inatumia sock.sendMessage kama ilivyoelekezwa kwenye index.js
         await sock.sendMessage(m.key.remoteJid, {
-            text: message,
+            text: tagMsg,
             mentions: mentions
         }, { quoted: m });
 
+        console.log(`✅ [TAGALL] Executed successfully in ${groupMetadata.subject}`);
+
     } catch (err) {
-        // Ikitokea hitilafu (mfano: network), itairekodi bila kuzima bot
-        console.error(`❌ TagAll Plugin Error: ${err.message}`);
+        // Inarekodi kosa bila kuzima bot nzima
+        console.log(`❌ TagAll Plugin Error: ${err.message}`);
     }
 };
-    
+            
