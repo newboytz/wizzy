@@ -1,40 +1,41 @@
 module.exports = {
     name: "tagall",
-    description: "Mentions all members in the group with style",
+    description: "Mentions all members with a clean aesthetic",
     run: async (sock, m, { guard, config, command, text }) => {
         
         // 1. --- 🛡️ GUARD CHECK ---
-        // Inahakikisha bot haipotezi muda nje ya group
-        if (!await guard(sock, m, command, config, { groupOnly: true, adminOnly: true })) return;
+        // Ensure it only runs in groups and only by admins (optional)
+        if (!await guard(sock, m, command, config, { groupOnly: true })) return;
 
         try {
             // 2. --- GET DATA ---
             const groupMetadata = await sock.groupMetadata(m.key.remoteJid);
             const participants = groupMetadata.participants;
-            const botName = config.botName || "QB BOT"; // Inavuta jina kutoka kwenye config yako
+            const botName = config.botName || "QB BOT";
+            const groupName = groupMetadata.subject;
 
-            // 3. --- PREPARE CONTENT ---
-            let userMsg = text ? text : 'Amkeni amkeni! Kuna jambo huku...';
+            // 3. --- PREPARE MESSAGE CONTENT ---
+            let userMsg = text ? text : 'No specific message provided.';
             
-            // Unyama wa header uliotulia
-            let tagMsg = `╔══════ ✨ *${botName.toUpperCase()}* ✨ ══════╗\n\n`;
-            tagMsg += `📢  *TAG ALL ANNOUNCEMENT*\n`;
-            tagMsg += `📝  *Message:* ${userMsg}\n\n`;
-            tagMsg += `✨ *Members:* ${participants.length}\n`;
-            tagMsg += `⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n`;
+            // Clean & Professional Header
+            let tagMsg = `🚀 *${botName.toUpperCase()} MULTI-TAG* 🚀\n\n`;
+            tagMsg += `📌 *Group:* ${groupName}\n`;
+            tagMsg += `📝 *Message:* ${userMsg}\n`;
+            tagMsg += `👥 *Total Members:* ${participants.length}\n\n`;
+            tagMsg += `--- *MEMBER LIST* ---\n\n`;
 
             let mentions = [];
             let list = "";
 
-            // 4. --- MENTIONS LOOP ---
+            // 4. --- MENTIONS LOOP (THE ROCKET STYLE) ---
             for (let mem of participants) {
-                list += `  ◦  @${mem.id.split('@')[0]}\n`;
+                // Formatting: 🚀 @123456789
+                list += `🚀 @${mem.id.split('@')[0]}\n`;
                 mentions.push(mem.id);
             }
 
             tagMsg += list;
-            tagMsg += `\n╚═══════════════════════════╝\n`;
-            tagMsg += `\n*🛡️ Powered by ${botName}*`;
+            tagMsg += `\n\n*🛡️ Powered by ${botName} System*`;
 
             // 5. --- SEND MESSAGE ---
             await sock.sendMessage(m.key.remoteJid, {
@@ -44,8 +45,9 @@ module.exports = {
 
         } catch (err) {
             console.log(`❌ TagAll Error: ${err.message}`);
-            await sock.sendMessage(m.key.remoteJid, { text: `❌ Error: ${err.message}` }, { quoted: m });
+            // Optional: send error to group
+            // await sock.sendMessage(m.key.remoteJid, { text: `System Error: ${err.message}` });
         }
     }
 };
-                
+                                                    
