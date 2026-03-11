@@ -41,5 +41,10 @@ pkg install termux-api -y
 termux-share -a send BOT_.zip
 ```
 ---
+## 💥cop
+```bash
+cp -r /sdcard/Download/BOT. ~/
+```
+---
 > **Kumbuka:** Hakikisha internet yako ipo sawa kabla ya kuanza usakinishaji.
 > 
