@@ -272,24 +272,6 @@ sock.ev.on("messages.upsert", async (chatUpdate) => {
          const m = chatUpdate.messages[0];
         // Badala ya: if (!m || !m.message) return;
          if (!m) return; 
-
-    // NDANI YA MESSAGE HANDLER YAKO:
-const fs = require('fs');
-let db = JSON.parse(fs.readFileSync('./database.json'));
-const chatId = m.key.remoteJid;
-
-// Check kama chat hii imewashwa Auto-Typing kwenye database
-if (db.settings[chatId]?.autotyping === true) {
-    
-    // 1. Inza kuonyesha 'composing' (typing...)
-    await sock.sendPresenceUpdate('composing', chatId);
-    
-    // 2. Subiri kwa sekunde 4 (4000ms)
-    await new Promise(resolve => setTimeout(resolve, 4000));
-    
-    // 3. Zima 'composing' (Inakuwa 'paused')
-    await sock.sendPresenceUpdate('paused', chatId);
-}
         
 
         // 🌟 PRO MAX AUTO-STATUS VIEW (Top Priority)
