@@ -1,22 +1,45 @@
-// --- COMMAND: MUDA (DM ONLY) ---
-if (command === "muda" || command === "time") {
-    // Tunatumia guard kuzuia isifanye kazi kwenye magrupu
-    const isAllowed = await guard(sock, m, command, config, { privateOnly: true });
-    
-    if (isAllowed) {
-        const masaa = new Date().toLocaleTimeString('sw-TZ', { timeZone: 'Africa/Nairobi' });
+module.exports = {
+    name: "time",
+    description: "Inaonyesha saa na tarehe (DM Only)",
+    run: async (sock, m, { guard, config, command }) => {
+        
+        // --- 🛡️ GUARD SYSTEM ---
+        // Tunaiambia guard itumie 'privateOnly: true'
+        // Hii inahakikisha command haifanyi kazi kwenye magrupu
+        if (!await guard(sock, m, command, config, { privateOnly: true })) return;
+
+        // --- TIME LOGIC (Tanzania/East Africa) ---
+        const options = { timeZone: 'Africa/Nairobi', hour12: true };
+        const saa = new Date().toLocaleTimeString('sw-TZ', options);
         const tarehe = new Date().toLocaleDateString('sw-TZ', { 
             weekday: 'long', 
-            year: 'numeric', 
+            day: 'numeric', 
             month: 'long', 
-            day: 'numeric' 
+            year: 'numeric' 
         });
 
-        const timeMsg = `*⌚ MUDA NA TAREHE (DM MODE)*\n\n` +
-                        `🕒 *Saa:* ${masaa}\n` +
-                        `📅 *Leo:* ${tarehe}\n\n` +
-                        `_Hii command inafanya kazi hapa DM tu!_`;
+        // --- SALAMU KULINGANA NA MUDA ---
+        const hour = new Date(new Date().toLocaleString("en-US", {timeZone: "Africa/Nairobi"})).getHours();
+        let salamu = "Habari!";
+        if (hour < 12) salamu = "Habari ya Asubuhi 🌅";
+        else if (hour < 16) salamu = "Habari ya Mchana ☀️";
+        else if (hour < 21) salamu = "Habari ya Jioni 🌆";
+        else salamu = "Usiku Mwema 🌙";
 
-        await sock.sendMessage(from, { text: timeMsg }, { quoted: m });
+        // --- UJUMBE WA KUTUMA ---
+        const timeMsg = `
+*${salamu}*
+
+⌚ *Muda:* ${saa}
+📅 *Tarehe:* ${tarehe}
+🌍 *Eneo:* Afrika Mashariki (EAT)
+
+_Hii command imefungwa kufanya kazi DM pekee._`.trim();
+
+        // Kutuma ujumbe
+        await sock.sendMessage(m.key.remoteJid, { 
+            text: timeMsg 
+        }, { quoted: m });
     }
-          }
+};
+                         
