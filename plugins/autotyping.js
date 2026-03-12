@@ -1,47 +1,29 @@
-const fs = require('fs');
-const path = require('path');
-
 module.exports = {
     name: "autotyping",
-    description: "Smart Auto-Typing with Toggle & Auto-Correction",
-    async run(sock, m, { guard, config, command, args, localDB }) {
+    alias: ["atyping", "typing"],
+    description: "Washa au zima auto-typing kwa chat hii",
+    run: async (sock, m, { text, isOwner, isGroup, config }) => {
         
-        const from = m.key.remoteJid;
+        // Tunahakikisha database ipo (Hii ni simple check)
+        const fs = require('fs');
+        let db = JSON.parse(fs.readFileSync('./database.json'));
+        
+        if (!db.settings) db.settings = {};
+        const chatId = m.key.remoteJid;
 
-        // 1️⃣ [GLOBAL LOGIC] - Hii sehemu inaprosesi kila ujumbe
-        // Inacheki kama switch ipo ON na kama ujumbe hautoki kwako
-        if (localDB.settings?.autoTyping && !m.key.fromMe && from !== 'status@broadcast') {
-            await sock.sendPresenceUpdate('composing', from);
+        if (!text) return m.reply("Matumizi: *.autotyping on* au *.autotyping off*");
+
+        if (text.toLowerCase() === "on") {
+            db.settings[chatId] = { autotyping: true };
+            fs.writeFileSync('./database.json', JSON.stringify(db, null, 2));
+            return m.reply("✅ *Auto-Typing imewashwa!* Bot sasa itaonyesha 'typing...' kwa sekunde 4 kila sms ikifika.");
         }
 
-        // 2️⃣ [COMMAND LOGIC] - Inafanya kazi tu ukipiga command
-        if (command === "autotyping") {
-            // Ulinzi wa Owner pekee
-            if (!await guard(sock, m, command, config)) return;
-
-            const input = args[0] ? args[0].toLowerCase() : null;
-
-            // Smart Correction
-            if (input && !['on', 'off'].includes(input)) {
-                let suggest = input.includes('o') ? "on" : "off";
-                return await sock.sendMessage(from, { 
-                    text: `❌ *English Correction:* \n\nInvalid setting! Did you mean *${config.prefix}${command} ${suggest}*?` 
-                }, { quoted: m });
-            }
-
-            // Toggle Logic
-            if (!localDB.settings) localDB.settings = {};
-            localDB.settings.autoTyping = input ? (input === 'on') : !localDB.settings.autoTyping;
-
-            // Save to Database
-            const DB_PATH = path.join(__dirname, "../database.json");
-            fs.writeFileSync(DB_PATH, JSON.stringify(localDB, null, 2));
-
-            const status = localDB.settings.autoTyping ? "ENABLED ✅" : "DISABLED ❌";
-            await sock.sendMessage(from, { 
-                text: `*AUTO-TYPING SYSTEM*\n\nStatus: *${status}*\nFeedback: Mode has been updated successfully.` 
-            }, { quoted: m });
+        if (text.toLowerCase() === "off") {
+            db.settings[chatId] = { autotyping: false };
+            fs.writeFileSync('./database.json', JSON.stringify(db, null, 2));
+            return m.reply("❌ *Auto-Typing imezimwa!*");
         }
     }
 };
-            
+                          
