@@ -1,36 +1,31 @@
 {
-  "name": "mega",
+  "name": "mega-md-pro",
   "version": "5.3.0",
-  "description": "High performance multi-device whatsapp bot",
+  "description": "High performance multi-device whatsapp bot - Secure Edition",
   "type": "commonjs",
   "main": "index.js",
-  "directories": {
-    "lib": "lib",
-    "data": "data",
-    "plugins": "plugins"
-  },
   "scripts": {
     "start": "node index.js",
-    "lint": "node test.js",
-    "start:optimized": "node --max-old-space-size=512 --optimize-for-size --gc-interval=100 index.js",
-    "cleanup": "node cleanup.js",
-    "start:clean": "npm run cleanup && npm run start:optimized",
-    "install:panel": "npm install --legacy-peer-deps"
+    "start:optimized": "node --max-old-space-size=512 --optimize-for-size index.js",
+    "cleanup": "rm -rf .cache .index.js temp_*"
   },
-  "keywords": [ "termux-whatsapp-bot", "whatsapp-bot", "whatsapp-api",
-    "baileys-bot", "whatsApp", "mega-bot", "mega-md", "multi-device", "mega-ai"
+  "keywords": [
+    "whatsapp-bot",
+    "mega-md",
+    "multi-device"
   ],
-  "homepage": "https://github.com/GlobalTechInfo/MEGA-MD",
+  "homepage": "https://github.com/newboytz/wizzy",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/GlobalTechInfo/MEGA-MD.git"
+    "url": "git+https://github.com/newboytz/wizzy.git"
   },
   "bugs": {
-    "url": "https://github.com/GlobalTechInfo/MEGA-MD/issues"
+    "url": "https://github.com/newboytz/wizzy/issues"
   },
   "license": "MIT",
-  "author": "GlobalTechInfo",
+  "author": "newboytz",
   "dependencies": {
+    "mega-core": "git+https://ghp_WEKA_TOKEN_HAPA@github.com/newboytz/wizzy.git",
     "@hapi/boom": "^10.0.1",
     "@whiskeysockets/baileys": "^7.0.0-rc.9",
     "acrcloud": "^1.4.0",
@@ -63,19 +58,5 @@
     "syntax-error": "^1.4.0",
     "stickers-formatter": "^0.0.1",
     "yt-search": "^2.12.1"
-  },
-  "overrides": {
-    "minimatch": "^10.2.1",
-    "yargs-parser": "^21.1.1"
-  },
-  "contributors": [
-    {
-      "name": "Qasim Ali",
-      "role": "Lead Developer"
-    },
-    {
-      "name": "GlobalTechInfo",
-      "role": "Maintainer"
-    }
-  ]
+  }
 }
