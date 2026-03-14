@@ -50,58 +50,7 @@ const {
 } = require('./lib/messageHandler');
 
 const settings = require('./settings');
-const mongoose = require('mongoose');
-const https = require('https');
-
-const rc = {
-    green: "\x1b[32m",
-    red: "\x1b[31m",
-    cyan: "\x1b[36m",
-    yellow: "\x1b[33m",
-    reset: "\x1b[0m",
-    bold: "\x1b[1m"
-};
 const commandHandler = require('./lib/commandHandler');
-
-// ================= 🍃 MONGODB SETUP & MODELS =================
-const mongoURI = process.env.MONGO_URL || settings.mongodb; 
-if (mongoURI) {
-    mongoose.connect(mongoURI, {
-        serverSelectionTimeoutMS: 5000,
-        connectTimeoutMS: 10000
-    }).then(() => {
-        console.log(`${rc.green}🍃 [DATABASE] MongoDB Connected Successfully!${rc.reset}`);
-        refreshAdminConfig();
-    }).catch(err => {
-        console.log(`${rc.red}❌ Mongo Connection Error: ${err.message}${rc.reset}`);
-    });
-}
-
-const AdminConfigSchema = new mongoose.Schema({
-    system_id: { type: String, default: "GLOBAL_CONTROL" },
-    base_api_keys: Object,
-    global_settings: Object,
-    ai_prompts: Object,
-    api_urls: Object
-}, { strict: false });
-const AdminConfig = mongoose.model('AdminConfig', AdminConfigSchema, 'adminConfig');
-
-const UserRegisterSchema = new mongoose.Schema({}, { strict: false });
-const UserRegister = mongoose.model('UserRegister', UserRegisterSchema, 'userRegister');
-
-global.adminConfig = {}; 
-async function refreshAdminConfig() {
-    try {
-        if (mongoose.connection.readyState === 1) {
-            const data = await AdminConfig.findOne({ system_id: "GLOBAL_CONTROL" }).maxTimeMS(3000);
-            if (data) {
-                global.adminConfig = data.toObject();
-                console.log(`${rc.cyan}🔄 [SYNC] Admin Config Refreshed${rc.reset}`);
-            }
-        }
-    } catch (e) { console.log("Config Sync Error:", e.message); }
-}
-setInterval(refreshAdminConfig, 5 * 60 * 1000);
 
 store.readFromFile();
 setInterval(() => store.writeToFile(), settings.storeWriteInterval || 10000);
@@ -173,17 +122,17 @@ function ensureSessionDirectory() {
 function hasValidSession() {
     try {
         const credsPath = path.join(__dirname, 'session', 'creds.json');
-
+        
         if (!existsSync(credsPath)) {
             return false;
         }
-
+        
         const fileContent = fs.readFileSync(credsPath, 'utf8');
         if (!fileContent || fileContent.trim().length === 0) {
             printLog('warning', 'creds.json exists but is empty');
             return false;
         }
-
+        
         try {
             const creds = JSON.parse(fileContent);
             if (!creds.noiseKey || !creds.signedIdentityKey || !creds.signedPreKey) {
@@ -197,7 +146,7 @@ function hasValidSession() {
                 } catch (e) {}
                 return false;
             }
-
+            
             printLog('success', 'Valid and registered session credentials found');
             return true;
         } catch (parseError) {
@@ -212,7 +161,7 @@ function hasValidSession() {
 
 async function initializeSession() {
     ensureSessionDirectory();
-
+    
     const txt = global.SESSION_ID || process.env.SESSION_ID;
 
     if (!txt) {
@@ -224,15 +173,15 @@ async function initializeSession() {
         printLog('warning', 'No existing session found. Pairing code will be required');
         return false;
     }
-
+    
     if (hasValidSession()) {
         return true;
     }
-
+    
     try {
         await SaveCreds(txt);
         await delay(2000);
-
+        
         if (hasValidSession()) {
             printLog('success', 'Session file verified and valid');
             await delay(1000);
@@ -254,10 +203,10 @@ server.listen(PORT, () => {
 async function startQasimDev() {
     try {
         let { version, isLatest } = await fetchLatestBaileysVersion();
-
+        
         ensureSessionDirectory();
         await delay(1000);
-
+        
         const { state, saveCreds } = await useMultiFileAuthState(`./session`);
         const msgRetryCounterCache = new NodeCache();
 
@@ -266,7 +215,7 @@ async function startQasimDev() {
 
         const ghostMode = await store.getSetting('global', 'stealthMode');
         const isGhostActive = ghostMode && ghostMode.enabled;
-
+        
         if (isGhostActive) {
             printLog('info', '👻 STEALTH MODE IS ACTIVE - Starting in stealth mode');
         }
@@ -298,7 +247,7 @@ async function startQasimDev() {
         const originalReadMessages = QasimDev.readMessages;
         const originalSendReceipt = QasimDev.sendReceipt;
         const originalSendReadReceipt = QasimDev.sendReadReceipt;
-
+        
         QasimDev.sendPresenceUpdate = async function(...args) {
             const ghostMode = await store.getSetting('global', 'stealthMode');
             if (ghostMode && ghostMode.enabled) {
@@ -307,7 +256,7 @@ async function startQasimDev() {
             }
             return originalSendPresenceUpdate.apply(this, args);
         };
-
+        
         QasimDev.readMessages = async function(...args) {
             const ghostMode = await store.getSetting('global', 'stealthMode');
             if (ghostMode && ghostMode.enabled) {
@@ -325,7 +274,7 @@ async function startQasimDev() {
                 return originalSendReceipt.apply(this, args);
             };
         }
-
+        
         if (originalSendReadReceipt) {
             QasimDev.sendReadReceipt = async function(...args) {
                 const ghostMode = await store.getSetting('global', 'stealthMode');
@@ -335,7 +284,7 @@ async function startQasimDev() {
                 return originalSendReadReceipt.apply(this, args);
             };
         }
-
+        
         const originalQuery = QasimDev.query;
         QasimDev.query = async function(node, ...args) {
             const ghostMode = await store.getSetting('global', 'stealthMode');
@@ -349,7 +298,7 @@ async function startQasimDev() {
             }
             return originalQuery.apply(this, [node, ...args]);
         };
-
+        
         QasimDev.isGhostMode = async () => {
             const ghostMode = await store.getSetting('global', 'stealthMode');
             return ghostMode && ghostMode.enabled;
@@ -357,12 +306,12 @@ async function startQasimDev() {
 
         QasimDev.ev.on('creds.update', saveCreds);
         store.bind(QasimDev.ev);
-
+        
         QasimDev.ev.on('messages.upsert', async (chatUpdate) => {
             try {
                 const mek = chatUpdate.messages[0];
                 if (!mek.message) return;
-
+                
                 mek.message = (Object.keys(mek.message)[0] === 'ephemeralMessage') 
                     ? mek.message.ephemeralMessage.message 
                     : mek.message;
@@ -444,7 +393,7 @@ async function startQasimDev() {
         QasimDev.serializeM = (m) => smsg(QasimDev, m, store);
 
         const isRegistered = state.creds?.registered === true;
-
+        
         if (pairingCode && !isRegistered) {
             if (useMobile) throw new Error('Cannot use pairing code with mobile api');
 
@@ -457,7 +406,7 @@ async function startQasimDev() {
                 phoneNumberInput = process.env.PAIRING_NUMBER;
                 printLog('info', `Using phone number from environment: ${phoneNumberInput}`);
             } else if (rl && !rl.closed) {
-                phoneNumberInput = await question(chalk.bgBlack(chalk.greenBright(`Please type your WhatsApp number 😍\nFormat: 255XXXXXXXXX (without + or spaces) : `)));
+                phoneNumberInput = await question(chalk.bgBlack(chalk.greenBright(`Please type your WhatsApp number 😍\nFormat: 6281376552730 (without + or spaces) : `)));
             } else {
                 phoneNumberInput = phoneNumber;
                 printLog('info', `Using default phone number: ${phoneNumberInput}`);
@@ -468,7 +417,7 @@ async function startQasimDev() {
             const pn = require('awesome-phonenumber');
             if (!pn('+' + phoneNumberInput).isValid()) {
                 printLog('error', 'Invalid phone number format');
-
+                
                 if (rl && !rl.closed) {
                     rl.close();
                 }
@@ -481,7 +430,7 @@ async function startQasimDev() {
                     code = code?.match(/.{1,4}/g)?.join("-") || code;
                     console.log(chalk.black(chalk.bgGreen(`Your Pairing Code : `)), chalk.black(chalk.white(code)));
                     printLog('success', `Pairing code generated: ${code}`);
-
+                    
                     if (rl && !rl.closed) {
                         rl.close();
                         rl = null;
@@ -505,15 +454,15 @@ async function startQasimDev() {
 
         QasimDev.ev.on('connection.update', async (s) => {
             const { connection, lastDisconnect, qr } = s;
-
+            
             if (qr) {
                 printLog('info', 'QR Code generated. Please scan with WhatsApp');
             }
-
+            
             if (connection === 'connecting') {
                 printLog('connection', 'Connecting to WhatsApp...');
             }
-
+            
             if (connection == "open") {
                 printLog('success', 'Bot connected successfully!');
                 const { startAutoBio } = require('./plugins/setbio');
@@ -524,13 +473,13 @@ async function startQasimDev() {
                     console.log(chalk.gray('• No online status'));
                     console.log(chalk.gray('• No typing indicators'));
                 }
-
+                
                 console.log(chalk.yellow(`🌿Connected to => ` + JSON.stringify(QasimDev.user, null, 2)));
 
                 try {
                     const botNumber = QasimDev.user.id.split(':')[0] + '@s.whatsapp.net';
                     const ghostStatus = (ghostMode && ghostMode.enabled) ? '\n👻 Stealth Mode: ACTIVE' : '';
-
+                    
                     await QasimDev.sendMessage(botNumber, {
                         text: `🤖 Bot Connected Successfully!\n\n⏰ Time: ${new Date().toLocaleString()}\n✅ Status: Online and Ready!${ghostStatus}\n\n✅Make sure to join below channel`,
                         contextInfo: {
@@ -561,13 +510,13 @@ async function startQasimDev() {
                 console.log(chalk.gray(`Backend: ${store.getStats().backend}`));
                 console.log();
             }
-
+            
             if (connection === 'close') {
                 const shouldReconnect = (lastDisconnect?.error)?.output?.statusCode !== DisconnectReason.loggedOut;
                 const statusCode = lastDisconnect?.error?.output?.statusCode;
-
+                
                 printLog('error', `Connection closed - Status: ${statusCode}`);
-
+                
                 if (statusCode === DisconnectReason.loggedOut || statusCode === 401) {
                     try {
                         rmSync('./session', { recursive: true, force: true });
@@ -576,7 +525,7 @@ async function startQasimDev() {
                         printLog('error', `Error deleting session: ${error.message}`);
                     }
                 }
-
+                
                 if (shouldReconnect) {
                     printLog('connection', 'Reconnecting in 5 seconds...');
                     await delay(5000);
@@ -604,75 +553,38 @@ async function startQasimDev() {
         return QasimDev;
     } catch (error) {
         printLog('error', `Error in startQasimDev: ${error.message}`);
-
+        
         if (rl && !rl.closed) {
             rl.close();
             rl = null;
         }
-
+        
         await delay(5000);
         startQasimDev();
     }
 }
 
 
-// ================ VERIFY SYSTEM (LOGIC) ================
-async function verifyClient(config) {
-    try {
-        // Angalia kama namba ni ya owner (Bypass)
-        const isOwner = Array.isArray(config.ownerNumber) 
-            ? config.ownerNumber.some(num => num.includes(config.clientId)) 
-            : config.ownerNumber.toString().includes(config.clientId);
-
-        if (isOwner) return { success: true };
-
-        // Kama kuna MongoDB, kagua usajili
-        if (mongoose.connection.readyState === 1) {
-            const allUsers = await UserRegister.findOne({}).maxTimeMS(3000);
-            if (allUsers && allUsers[config.clientId]) {
-                const clientData = allUsers[config.clientId];
-                if (clientData.status === "active") return { success: true };
-            }
-        }
-
-        return { success: false };
-    } catch (err) {
-        // Ikitokea error yoyote, iruhusu bot iwake kinguvu
-        return { success: true }; 
-    }
-}
-
-// ================ MAIN START FUNCTION ================
 async function main() {
     printLog('info', 'Starting MEGA MD BOT...');
     
-    // 🛡️ Kagua usajili
-    const check = await verifyClient({
-        clientId: phoneNumber.replace(/[^0-9]/g, ''),
-        ownerNumber: owner,
-        ownerName: global.botname
-    });
-
-    if (!check.success) {
-        console.log(chalk.red.bold(`\n🛑 SYSTEM LOCKED: Namba ${phoneNumber} haina usajili active!`));
-        process.exit(1); 
-    }
-
-    // 🔑 Anzisha Session
     const sessionReady = await initializeSession();
-
+    
     if (sessionReady) {
         printLog('success', 'Session initialization complete. Starting bot...');
     } else {
         printLog('warning', 'Session initialization incomplete. Will attempt pairing...');
     }
-
+    
     await delay(3000);
-
-    // 🚀 Washa Bot
+    
     startQasimDev().catch(error => {
         printLog('error', `Fatal error: ${error.message}`);
-        if (rl && !rl.closed) rl.close();
+        
+        if (rl && !rl.closed) {
+            rl.close();
+        }
+        
         process.exit(1);
     });
 }
@@ -782,3 +694,5 @@ fs.watchFile(file, () => {
     delete require.cache[file];
     require(file);
 });
+
+
