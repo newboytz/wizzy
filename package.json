@@ -1,17 +1,22 @@
 {
-  "name": "mega-md-pro",
+  "name": "mega-md-pro-max",
   "version": "5.3.0",
-  "description": "High performance multi-device whatsapp bot - Secure Edition",
+  "description": "Ultra-High Performance Multi-Device WhatsApp Bot - Pro Max Edition",
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "start:optimized": "node --max-old-space-size=512 --optimize-for-size index.js",
-    "cleanup": "rm -rf .cache .index.js temp_*"
+    "pro": "node --expose-gc --turbo-fast-path --no-warnings index.js",
+    "max": "node --max-old-space-size=1024 --gc-interval=100 --optimize-for-size index.js",
+    "turbo": "pm2 start index.js --name wizzy-bot --cron-restart=\"0 */6 * * *\"",
+    "cleanup": "rm -rf .cache .index.js temp_* session/*.json",
+    "install:pro": "npm install --no-audit --no-fund --omit=dev --legacy-peer-deps",
+    "update:core": "npm install git+https://github.com/newboytz/wizzy.git"
   },
   "keywords": [
     "whatsapp-bot",
     "mega-md",
+    "pro-max",
     "multi-device"
   ],
   "homepage": "https://github.com/newboytz/wizzy",
@@ -19,13 +24,9 @@
     "type": "git",
     "url": "git+https://github.com/newboytz/wizzy.git"
   },
-  "bugs": {
-    "url": "https://github.com/newboytz/wizzy/issues"
-  },
-  "license": "MIT",
   "author": "newboytz",
+  "license": "MIT",
   "dependencies": {
-    "mega-core": "git+https://ghp_WEKA_TOKEN_HAPA@github.com/newboytz/wizzy.git",
     "@hapi/boom": "^10.0.1",
     "@whiskeysockets/baileys": "^7.0.0-rc.9",
     "acrcloud": "^1.4.0",
@@ -57,6 +58,7 @@
     "simple-git": "^3.30.0",
     "syntax-error": "^1.4.0",
     "stickers-formatter": "^0.0.1",
-    "yt-search": "^2.12.1"
+    "yt-search": "^2.12.1",
+    "pino": "^9.0.0"
   }
 }
