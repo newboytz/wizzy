@@ -1,4 +1,4 @@
-const sharp = require('sharp');
+const Jimp = require('jimp');
 const fs = require('fs');
 const fsPromises = require('fs/promises');
 const fse = require('fs-extra');
@@ -16,7 +16,7 @@ const scheduleFileDeletion = (filePath) => {
         } catch (error) {
             console.error(`Failed to delete file:`, error);
         }
-    }, 10000); // 10 seconds
+    }, 10000);
 };
 
 module.exports = {
@@ -26,12 +26,17 @@ module.exports = {
     description: 'Convert a sticker to an image',
     usage: '.s2img (reply to a sticker)',
     async handler(sock, message, args, context = {}) {
+
         const chatId = context.chatId || message.key.remoteJid;
 
         try {
             const quotedMessage = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+
             if (!quotedMessage?.stickerMessage) {
-                await sock.sendMessage(chatId, { text: '⚠️ Reply to a sticker with .simage to convert it.' }, { quoted: message });
+                await sock.sendMessage(chatId,
+                    { text: '⚠️ Reply to a sticker with .simage to convert it.' },
+                    { quoted: message }
+                );
                 return;
             }
 
@@ -39,21 +44,38 @@ module.exports = {
             const outputImagePath = path.join(tempDir, `converted_image_${Date.now()}.png`);
 
             const stream = await downloadContentFromMessage(quotedMessage.stickerMessage, 'sticker');
+
             let buffer = Buffer.from([]);
-            for await (const chunk of stream) buffer = Buffer.concat([buffer, chunk]);
+
+            for await (const chunk of stream) {
+                buffer = Buffer.concat([buffer, chunk]);
+            }
 
             await fsPromises.writeFile(stickerFilePath, buffer);
-            await sharp(stickerFilePath).toFormat('png').toFile(outputImagePath);
+
+            const img = await Jimp.read(stickerFilePath);
+            await img.writeAsync(outputImagePath);
 
             const imageBuffer = await fsPromises.readFile(outputImagePath);
-            await sock.sendMessage(chatId, { image: imageBuffer, caption: '✨ Here is the converted image!' }, { quoted: message });
+
+            await sock.sendMessage(chatId,
+                {
+                    image: imageBuffer,
+                    caption: '✨ Here is the converted image!'
+                },
+                { quoted: message }
+            );
 
             scheduleFileDeletion(stickerFilePath);
             scheduleFileDeletion(outputImagePath);
 
         } catch (error) {
             console.error('SImage Command Error:', error);
-            await sock.sendMessage(chatId, { text: '❌ An error occurred while converting the sticker.' }, { quoted: message });
+
+            await sock.sendMessage(chatId,
+                { text: '❌ An error occurred while converting the sticker.' },
+                { quoted: message }
+            );
         }
     }
 };
