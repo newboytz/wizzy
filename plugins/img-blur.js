@@ -1,5 +1,5 @@
 const { downloadMediaMessage } = require('@whiskeysockets/baileys');
-const sharp = require('sharp');
+const Jimp = require('jimp')
 
 module.exports = {
   command: 'blur',
@@ -10,29 +10,31 @@ module.exports = {
   async handler(sock, message, args, context = {}) {
     const chatId = context.chatId || message.key.remoteJid;
     const quotedMessage = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+
     try {
       let imageBuffer;
+
       if (quotedMessage?.imageMessage) {
         const quoted = { message: { imageMessage: quotedMessage.imageMessage } };
         imageBuffer = await downloadMediaMessage(quoted, 'buffer', {}, {});
-      } else if (message.message?.imageMessage) {
+      } 
+      else if (message.message?.imageMessage) {
         imageBuffer = await downloadMediaMessage(message, 'buffer', {}, {});
-      } else {
+      } 
+      else {
         await sock.sendMessage(chatId, { 
           text: 'Please reply to an image or send an image with caption `.blur`' 
         }, { quoted: message });
         return;
       }
-      const resizedImage = await sharp(imageBuffer)
-        .resize(800, 800, {
-          fit: 'inside',
-          withoutEnlargement: true
-        })
-        .jpeg({ quality: 80 })
-        .toBuffer();
-      const blurredImage = await sharp(resizedImage)
-        .blur(10)
-        .toBuffer();
+
+      const img = await Jimp.read(imageBuffer)
+
+      img.scaleToFit(800, 800)
+
+      img.blur(10)
+
+      const blurredImage = await img.getBufferAsync(Jimp.MIME_JPEG)
 
       await sock.sendMessage(chatId, {
         image: blurredImage,
