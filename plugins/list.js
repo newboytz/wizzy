@@ -167,7 +167,7 @@ const menuStyles = [
       t += ` ╰──\n\n`;
 
       for (const [cat, cmds] of categories) {
-        t += ` |───⬣ *${cat.toUpperCase()}* ──⬣\n`;
+        t += ` ╭──⬣ *${cat.toUpperCase()}* ──⬣\n`;
         for (const c of cmds)
           t += ` | ● ${prefix}${c}\n`;
         t += ` ╰──\n`;
@@ -188,7 +188,7 @@ module.exports = {
   usage: '.menu [command]',
 
   async handler(sock, message, args, context) {
-    const { chatId, channelInfo } = context;
+    const { chatId } = context;
     const prefix = settings.prefixes[0];
     const imagePath = path.join(__dirname, '../assets/bot_image.jpg');
 
@@ -204,9 +204,8 @@ module.exports = {
       
       if (!cmd) {
         return sock.sendMessage(chatId, { 
-          text: `❌ Command "${args[0]}" not found.\n\nUse ${prefix}menu to see all commands.`,
-          ...channelInfo
-        }, { quoted: message });
+          text: `❌ Command "${args[0]}" not found.\n\nUse ${prefix}menu to see all commands.`
+         }, { quoted: message });
       }
 
       const text = 
@@ -224,12 +223,11 @@ module.exports = {
       if (fs.existsSync(imagePath)) {
         return sock.sendMessage(chatId, {
           image: { url: imagePath },
-          caption: text,
-          ...channelInfo
+          caption: text
         }, { quoted: message });
       }
 
-      return sock.sendMessage(chatId, { text, ...channelInfo }, { quoted: message });
+      return sock.sendMessage(chatId, { text }, { quoted: message });
     }
 
     const style = pick(menuStyles);
@@ -250,11 +248,10 @@ module.exports = {
     if (fs.existsSync(imagePath)) {
       await sock.sendMessage(chatId, {
         image: { url: imagePath },
-        caption: text,
-        ...channelInfo
-      }, { quoted: message });
+         caption: text
+     }, { quoted: message });
     } else {
-      await sock.sendMessage(chatId, { text, ...channelInfo }, { quoted: message });
+      await sock.sendMessage(chatId, { text }, { quoted: message });
     }
   }
 };
