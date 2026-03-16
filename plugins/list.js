@@ -1,16 +1,16 @@
 /*****************************************************************************
- *                                                                           *
- *                     Developed By Qasim Ali                                *
- *                                                                           *
- *  🌐  GitHub   : https://github.com/GlobalTechInfo                         *
- *  ▶️  YouTube  : https://youtube.com/@GlobalTechInfo                       *
- *  💬  WhatsApp : https://whatsapp.com/channel/0029VagJIAr3bbVBCpEkAM07     *
- *                                                                           *
- *    © 2026 GlobalTechInfo. All rights reserved.                            *
- *                                                                           *
- *    Description: This file is part of the MEGA-MD Project.                 *
- *                 Unauthorized copying or distribution is prohibited.       *
- *                                                                           *
+ * *
+ * Developed By Qasim Ali                                *
+ * *
+ * 🌐  GitHub   : https://github.com/GlobalTechInfo                         *
+ * ▶️  YouTube  : https://youtube.com/@GlobalTechInfo                       *
+ * 💬  WhatsApp : https://whatsapp.com/channel/0029VagJIAr3bbVBCpEkAM07     *
+ * *
+ * © 2026 GlobalTechInfo. All rights reserved.                            *
+ * *
+ * Description: This file is part of the MEGA-MD Project.                 *
+ * Unauthorized copying or distribution is prohibited.       *
+ * *
  *****************************************************************************/
 
 
@@ -38,13 +38,15 @@ const menuStyles = [
       t += `┃ 📦 *Plugin: ${info.total}*\n`;
       t += `┃ 💎 *Version: ${info.version}*\n`;
       t += `┃ ⏰ *Time: ${info.time}*\n`;
+      t += `╰━━━\n\n`;
 
       for (const [cat, cmds] of categories) {
-        t += `┃━━━ *${cat.toUpperCase()}* ━✦\n`;
+        t += `╭━━*${cat.toUpperCase()}* ━✦\n`;
         for (const c of cmds)
           t += `┃ ➤ ${prefix}${c}\n`;
+        t += `╰──\n`;
       }
-      t += `╰━━━━━━━━━━━━━⬣`;
+      t += `\n╰━━━━━━━━━━━━━⬣`;
       return t;
     }
   },
@@ -57,13 +59,15 @@ const menuStyles = [
       t += `◈├• 🍫 *Plugins: ${info.total}*\n`;
       t += `◈├• 💎 *Version: ${info.version}*\n`;
       t += `◈├• ⏰ *Time: ${info.time}*\n`;
+      t += `◈╰──\n\n`;
 
       for (const [cat, cmds] of categories) {
-        t += `◈├─❍「 *${cat.toUpperCase()}* 」❍\n`;
+        t += `◈╭─❍「 *${cat.toUpperCase()}* 」❍\n`;
         for (const c of cmds)
           t += `◈├• ${prefix}${c}\n`;
+        t += `◈╰──\n`;
       }
-      t += `◈╰──★─☆──♪♪─❍`;
+      t += `\n◈╰──★─☆──♪♪─❍`;
       return t;
     }
   },
@@ -76,13 +80,15 @@ const menuStyles = [
       t += `┃• *Plugins : ${info.total}*\n`;
       t += `┃• *Version : ${info.version}*\n`;
       t += `┃• *Time : ${info.time}*\n`;
+      t += `┗━━━━\n\n`;
 
       for (const [cat, cmds] of categories) {
-        t += `┃━━━━ *${cat.toUpperCase()}* ━━◆\n`;
+        t += `┏━━━━ *${cat.toUpperCase()}* ━━◆\n`;
         for (const c of cmds)
           t += `┃ ▸ ${prefix}${c}\n`;
+        t += `┗──\n`;
       }
-      t += `┗━━━━━━━━━━━━━━━┛`;
+      t += `\n┗━━━━━━━━━━━━━━━┛`;
       return t;
     }
   },
@@ -95,13 +101,15 @@ const menuStyles = [
       t += `║➩ *Plugins: ${info.total}*\n`;
       t += `║➩ *Version: ${info.version}*\n`;
       t += `║➩ *Time: ${info.time}*\n`;
+      t += `╚═══\n\n`;
 
       for (const [cat, cmds] of categories) {
         t += `║══ *${cat.toUpperCase()}* ══✧\n`;
         for (const c of cmds)
           t += `║ ✦ ${prefix}${c}\n`;
+        t += `╚──\n`;
       }
-      t += `✦══════════════✦`;
+      t += `\n✦══════════════✦`;
       return t;
     }
   },
@@ -114,13 +122,15 @@ const menuStyles = [
       t += `┃☞ *Plugins: ${info.total}*\n`;
       t += `┃☞ *Version: ${info.version}*\n`;
       t += `┃☞ *Time: ${info.time}*\n`;
+      t += `╰━━━\n\n`;
 
       for (const [cat, cmds] of categories) {
         t += `┃━━━〔 *${cat.toUpperCase()}* 〕━❀\n`;
         for (const c of cmds)
           t += `┃☞ ${prefix}${c}\n`;
+        t += `╰──\n`;
       }
-      t += `❀━━━━━━━━━━━━━━❀`;
+      t += `\n❀━━━━━━━━━━━━━━❀`;
       return t;
     }
   },
@@ -133,12 +143,15 @@ const menuStyles = [
       t += `┃ ¤ *Plugins: ${info.total}*\n`;
       t += `┃ ¤ *Version: ${info.version}*\n`;
       t += `┃ ¤ *Time: ${info.time}*\n`;
+      t += `╰━━━\n\n`;
+
       for (const [cat, cmds] of categories) {
         t += `┃━━ *${cat.toUpperCase()}* ━━◆◆\n`;
         for (const c of cmds)
           t += `┃ ¤ ${prefix}${c}\n`;
+        t += `╰──\n`;
       }
-      t += `◆━━━━━━━━━━━━━━━━◆`;
+      t += `\n◆━━━━━━━━━━━━━━━━◆`;
       return t;
     }
   },
@@ -151,12 +164,15 @@ const menuStyles = [
       t += ` | ● *Plugins: ${info.total}*\n`;
       t += ` | ● *Version: ${info.version}*\n`;
       t += ` | ● *Time: ${info.time}*\n`;
+      t += ` ╰──\n\n`;
+
       for (const [cat, cmds] of categories) {
         t += ` |───⬣ *${cat.toUpperCase()}* ──⬣\n`;
         for (const c of cmds)
           t += ` | ● ${prefix}${c}\n`;
+        t += ` ╰──\n`;
       }
-      t += `╰──────────⬣`;
+      t += `\n╰──────────⬣`;
       return t;
     }
   }
@@ -242,18 +258,3 @@ module.exports = {
     }
   }
 };
-
-/*****************************************************************************
- *                                                                           *
- *                     Developed By Qasim Ali                                *
- *                                                                           *
- *  🌐  GitHub   : https://github.com/GlobalTechInfo                         *
- *  ▶️  YouTube  : https://youtube.com/@GlobalTechInfo                       *
- *  💬  WhatsApp : https://whatsapp.com/channel/0029VagJIAr3bbVBCpEkAM07     *
- *                                                                           *
- *    © 2026 GlobalTechInfo. All rights reserved.                            *
- *                                                                           *
- *    Description: This file is part of the MEGA-MD Project.                 *
- *                 Unauthorized copying or distribution is prohibited.       *
- *                                                                           *
- *****************************************************************************/
