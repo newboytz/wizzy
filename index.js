@@ -339,15 +339,7 @@ async function startQasimDev() {
                     if (mek.key && mek.key.remoteJid) {
                         await QasimDev.sendMessage(mek.key.remoteJid, {
                             text: '❌ An error occurred while processing your message.',
-                            contextInfo: {
-                                forwardingScore: 1,
-                                isForwarded: true,
-                                forwardedNewsletterMessageInfo: {
-                                    newsletterJid: '120363387807166164@newsletter',
-                                    newsletterName: 'SASAMPA-MD',
-                                    serverMessageId: -1
-                                }
-                            }
+                            
                         }).catch(console.error);
                     }
                 }
@@ -480,18 +472,12 @@ async function startQasimDev() {
                     const botNumber = QasimDev.user.id.split(':')[0] + '@s.whatsapp.net';
                     const ghostStatus = (ghostMode && ghostMode.enabled) ? '\n👻 Stealth Mode: ACTIVE' : '';
                     
-                    await QasimDev.sendMessage(botNumber, {
-                        text: `🤖 Bot Connected Successfully!\n\n⏰ Time: ${new Date().toLocaleString()}\n✅ Status: Online and Ready!${ghostStatus}\n\n✅Make sure to join below channel`,
-                        contextInfo: {
-                            forwardingScore: 1,
-                            isForwarded: true,
-                            forwardedNewsletterMessageInfo: {
-                                newsletterJid: '120363387807166164@newsletter',
-                                newsletterName: 'SASAMPA-MD',
-                                serverMessageId: -1
-                            }
-                        }
-                    });
+               await QasimDev.sendMessage(botNumber, {
+                    text: `🤖 Bot Connected Successfully!
+
+               ⏰ Time: ${new Date().toLocaleString()}
+                ✅ Status: Online and Ready!`
+               });
                 } catch (error) {
                     printLog('error', `Failed to send connection message: ${error.message}`);
                 }
