@@ -10,13 +10,12 @@ module.exports = {
   usage: '.trivia [answer]',
   
   async handler(sock, message, args, context) {
-    const { chatId, channelInfo } = context;
+    const chatId = context.chatId || message.key.remoteJid;
     
     if (args.length === 0) {
       if (triviaGames[chatId]) {
         await sock.sendMessage(chatId, { 
           text: 'A trivia game is already in progress!',
-          ...channelInfo
         }, { quoted: message });
         return;
       }
@@ -33,19 +32,16 @@ module.exports = {
 
         await sock.sendMessage(chatId, {
           text: `🎯 *Trivia Time!*\n\n*Question:* ${triviaGames[chatId].question}\n\n*Options:*\n${triviaGames[chatId].options.join('\n')}\n\nUse .trivia <answer> to answer!`,
-          ...channelInfo
         }, { quoted: message });
       } catch (error) {
         await sock.sendMessage(chatId, { 
           text: 'Error fetching trivia question. Try again later.',
-          ...channelInfo
         }, { quoted: message });
       }
     } else {
       if (!triviaGames[chatId]) {
         await sock.sendMessage(chatId, { 
           text: 'No trivia game is in progress. Use .trivia to start one!',
-          ...channelInfo
         }, { quoted: message });
         return;
       }
@@ -56,12 +52,10 @@ module.exports = {
       if (answer.toLowerCase() === game.correctAnswer.toLowerCase()) {
         await sock.sendMessage(chatId, { 
           text: `✅ Correct! The answer is *${game.correctAnswer}*`,
-          ...channelInfo
         }, { quoted: message });
       } else {
         await sock.sendMessage(chatId, { 
           text: `❌ Wrong! The correct answer was *${game.correctAnswer}*`,
-          ...channelInfo
         }, { quoted: message });
       }
 
