@@ -1,5 +1,4 @@
 const axios = require('axios');
-const { channelInfo } = require('../lib/messageConfig');
 
 module.exports = {
   command: 'weather',
@@ -15,7 +14,6 @@ module.exports = {
     if (!city) {
       return await sock.sendMessage(chatId, {
         text: "*Please provide a place to search.*\nExample: .weather Karachi",
-        ...channelInfo
       }, { quoted: message });
     }
 
@@ -37,14 +35,12 @@ module.exports = {
 
       await sock.sendMessage(chatId, {
         text: weatherText,
-        ...channelInfo
       }, { quoted: message });
 
     } catch (error) {
       console.error('Weather plugin error:', error);
       await sock.sendMessage(chatId, {
         text: '❌ Sorry, I could not fetch the weather. Make sure the place name is correct.',
-        ...channelInfo
       }, { quoted: message });
     }
   }
