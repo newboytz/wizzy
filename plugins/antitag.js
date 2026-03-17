@@ -3,10 +3,10 @@ const { setAntitag, getAntitag, removeAntitag } = require('../lib/index');
 async function handleTagDetection(sock, chatId, message, senderId) {
     try {
         const antitagSetting = await getAntitag(chatId, 'on');
-        if (!antitagSetting || !antitagSetting.enabled) return;
+        if (!antitagSetting?.enabled) return;
 
         const mentionedJids = message.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
-        
+
         const messageText = (
             message.message?.conversation ||
             message.message?.extendedTextMessage?.text ||
@@ -18,28 +18,28 @@ async function handleTagDetection(sock, chatId, message, senderId) {
         const textMentions = messageText.match(/@[\d+\s\-()~.]+/g) || [];
         const numericMentions = messageText.match(/@\d{10,}/g) || [];
         const allMentions = [...new Set([...mentionedJids, ...textMentions, ...numericMentions])];
-        
+
         const uniqueNumericMentions = new Set();
         numericMentions.forEach(mention => {
             const numMatch = mention.match(/@(\d+)/);
             if (numMatch) uniqueNumericMentions.add(numMatch[1]);
         });
-        
+
         const mentionedJidCount = mentionedJids.length;
         const numericMentionCount = uniqueNumericMentions.size;
         const totalMentions = Math.max(mentionedJidCount, numericMentionCount);
 
         if (totalMentions >= 3) {
             const groupMetadata = await sock.groupMetadata(chatId);
-            const participants = groupMetadata.participants || [];
+            const participants = groupMetadata?.participants || [];
             const mentionThreshold = Math.ceil(participants.length * 0.5);
-            
+
             const hasManyNumericMentions = numericMentionCount >= 10 || 
                                           (numericMentionCount >= 5 && numericMentionCount >= mentionThreshold);
-            
+
             if (totalMentions >= mentionThreshold || hasManyNumericMentions) {
                 const action = antitagSetting.action || 'delete';
-                
+
                 if (action === 'delete') {
                     await sock.sendMessage(chatId, {
                         delete: {
@@ -49,12 +49,12 @@ async function handleTagDetection(sock, chatId, message, senderId) {
                             participant: senderId
                         }
                     });
-                    
+
                     await sock.sendMessage(chatId, {
                         text: `⚠️ *Tagall Detected!*\n\n@${senderId.split('@')[0]}, tagging all members is not allowed.`,
                         mentions: [senderId]
                     });
-                    
+
                 } else if (action === 'kick') {
                     await sock.sendMessage(chatId, {
                         delete: {
@@ -155,12 +155,12 @@ module.exports = {
                     return;
                 }
                 const setResult = await setAntitag(chatId, 'on', setAction);
-                
+
                 const actionDescriptions = {
                     delete: 'Delete tagall messages and warn users',
                     kick: 'Delete messages and remove users from group'
                 };
-                
+
                 await sock.sendMessage(chatId, {
                     text: setResult 
                         ? `✅ *Antitag action set to: ${setAction}*\n\n${actionDescriptions[setAction]}`
@@ -191,4 +191,3 @@ module.exports = {
 
     handleTagDetection
 };
-
