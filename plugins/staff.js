@@ -7,7 +7,7 @@ module.exports = {
   groupOnly: true,
   
   async handler(sock, message, args, context) {
-    const { chatId, channelInfo } = context;
+    const chatId = context.chatId || message.key.remoteJid;
     
     try {
       const groupMetadata = await sock.groupMetadata(chatId);
@@ -37,14 +37,12 @@ module.exports = {
         image: { url: pp },
         caption: text,
         mentions: [...groupAdmins.map(v => v.id), owner],
-        ...channelInfo
       });
 
     } catch (error) {
       console.error('Error in staff command:', error);
       await sock.sendMessage(chatId, { 
         text: 'Failed to get admin list!',
-        ...channelInfo
       }, { quoted: message });
     }
   }
