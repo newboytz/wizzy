@@ -7,7 +7,7 @@ module.exports = {
   groupOnly: true,
   
   async handler(sock, message, args, context) {
-    const { chatId, channelInfo } = context;
+    const chatId = context.chatId || message.key.remoteJid;
     
     try {
       const participants = await sock.groupMetadata(chatId);
@@ -25,14 +25,12 @@ module.exports = {
       await sock.sendMessage(chatId, {
         text: `${formatMention(firstUser)} ❤️ ${formatMention(secondUser)}\nCongratulations 💖🍻`,
         mentions: [firstUser, secondUser],
-        ...channelInfo
       });
 
     } catch (error) {
       console.error('Error in ship command:', error);
       await sock.sendMessage(chatId, { 
         text: '❌ Failed to ship! Make sure this is a group.',
-        ...channelInfo
       }, { quoted: message });
     }
   }
