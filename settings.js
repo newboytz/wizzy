@@ -4,12 +4,12 @@ const settings = {
   // Array fallback: splits string by comma, or uses default array
   prefixes: process.env.PREFIXES ? process.env.PREFIXES.split(',') : ['.', '!', '/', '#'],
   
-  packname: process.env.PACKNAME || 'MEGA-MD',
-  author: process.env.AUTHOR || 'GlobalTechInfo',
-  timeZone: process.env.TIMEZONE || 'Asia/Karachi',
-  botName: process.env.BOT_NAME || "MEGA-MD",
-  botOwner: process.env.BOT_OWNER || 'Qasim Ali',
-  ownerNumber: process.env.OWNER_NUMBER || '923051391007',
+  packname: process.env.PACKNAME || 'SASAMPA-MD',
+  author: process.env.AUTHOR || 'wizzy',
+  timeZone: process.env.TIMEZONE || 'Tanzaia',
+  botName: process.env.BOT_NAME || "SASAMPA-MD",
+  botOwner: process.env.BOT_OWNER || 'J_Wizzy',
+  ownerNumber: process.env.OWNER_NUMBER || '255775923311',
   giphyApiKey: process.env.GIPHY_API_KEY || 'qnl7ssQChTdPjsKta2Ax2LMaGXz303tq',
   commandMode: process.env.COMMAND_MODE || "public",
   
