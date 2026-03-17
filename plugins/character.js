@@ -1,5 +1,3 @@
-const { channelInfo } = require('../lib/messageConfig');
-
 module.exports = {
   command: 'character',
   aliases: ['personality', 'traits'],
@@ -11,6 +9,7 @@ module.exports = {
     const chatId = context.chatId || message.key.remoteJid;
     let userToAnalyze;
 
+    // Pata user anaye analyze
     if (message.message?.extendedTextMessage?.contextInfo?.mentionedJid?.length) {
       userToAnalyze = message.message.extendedTextMessage.contextInfo.mentionedJid[0];
     } else if (message.message?.extendedTextMessage?.contextInfo?.participant) {
@@ -20,11 +19,11 @@ module.exports = {
     if (!userToAnalyze) {
       return await sock.sendMessage(chatId, { 
         text: '❌ Please mention someone or reply to their message to analyze their character!', 
-        ...channelInfo 
       }, { quoted: message });
     }
 
     try {
+      // Pata profile pic
       let profilePic;
       try {
         profilePic = await sock.profilePictureUrl(userToAnalyze, 'image');
@@ -32,6 +31,7 @@ module.exports = {
         profilePic = 'https://i.imgur.com/2wzGhpF.jpeg';
       }
 
+      // Traits list
       const traits = [
         "Intelligent","Creative","Determined","Ambitious","Caring",
         "Charismatic","Confident","Empathetic","Energetic","Friendly",
@@ -41,6 +41,7 @@ module.exports = {
         "Sincere","Thoughtful","Understanding","Versatile","Wise"
       ];
 
+      // Chagua random 3-5 traits
       const numTraits = Math.floor(Math.random() * 3) + 3;
       const selectedTraits = [];
       while (selectedTraits.length < numTraits) {
@@ -48,6 +49,7 @@ module.exports = {
         if (!selectedTraits.includes(randomTrait)) selectedTraits.push(randomTrait);
       }
 
+      // Create percentages na analysis
       const traitPercentages = selectedTraits.map(trait => `${trait}: ${Math.floor(Math.random() * 41) + 60}%`);
       const analysis = `🔮 *Character Analysis* 🔮\n\n` +
         `👤 *User:* ${userToAnalyze.split('@')[0]}\n\n` +
@@ -55,19 +57,17 @@ module.exports = {
         `🎯 *Overall Rating:* ${Math.floor(Math.random() * 21) + 80}%\n\n` +
         `Note: This is a fun analysis and should not be taken seriously!`;
 
+      // Tuma message
       await sock.sendMessage(chatId, {
         image: { url: profilePic },
         caption: analysis,
-        mentions: [userToAnalyze],
-        ...channelInfo
+        mentions: [userToAnalyze], // mentions tu
       }, { quoted: message });
 
     } catch {
       await sock.sendMessage(chatId, { 
         text: '❌ Failed to analyze character! Try again later.',
-        ...channelInfo 
       }, { quoted: message });
     }
   }
 };
-
