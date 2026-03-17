@@ -54,7 +54,7 @@ module.exports = {
   adminOnly: true,
   
   async handler(sock, message, args, context) {
-    const { chatId, senderId, channelInfo } = context;
+    const chatId = context.chatId || message.key.remoteJid;
     
     try {
       initializeWarningsFile();
@@ -72,7 +72,6 @@ module.exports = {
       if (!userToWarn) {
         await sock.sendMessage(chatId, { 
           text: '❌ Error: Please mention the user or reply to their message to warn!',
-          ...channelInfo
         }, { quoted: message });
         return;
       }
@@ -98,7 +97,6 @@ module.exports = {
         await sock.sendMessage(chatId, { 
           text: warningMessage,
           mentions: [userToWarn, senderId],
-          ...channelInfo
         });
 
         if (warnings[chatId][userToWarn] >= 3) {
@@ -114,14 +112,12 @@ module.exports = {
           await sock.sendMessage(chatId, { 
             text: kickMessage,
             mentions: [userToWarn],
-            ...channelInfo
           });
         }
       } catch (error) {
         console.error('Error in warn command:', error);
         await sock.sendMessage(chatId, { 
           text: '❌ Failed to warn user!',
-          ...channelInfo
         }, { quoted: message });
       }
     } catch (error) {
@@ -131,7 +127,6 @@ module.exports = {
         try {
           await sock.sendMessage(chatId, { 
             text: '❌ Rate limit reached. Please try again in a few seconds.',
-            ...channelInfo
           }, { quoted: message });
         } catch (retryError) {
           console.error('Error sending retry message:', retryError);
@@ -140,7 +135,6 @@ module.exports = {
         try {
           await sock.sendMessage(chatId, { 
             text: '❌ Failed to warn user. Make sure the bot is admin and has sufficient permissions.',
-            ...channelInfo
           }, { quoted: message });
         } catch (sendError) {
           console.error('Error sending error message:', sendError);
