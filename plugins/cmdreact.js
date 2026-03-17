@@ -1,4 +1,3 @@
-
 const { setCommandReactState } = require('../lib/reactions');
 const store = require('../lib/lightweight_store');
 
@@ -8,7 +7,6 @@ const MYSQL_URL = process.env.MYSQL_URL;
 const SQLITE_URL = process.env.DB_URL;
 const HAS_DB = !!(MONGO_URL || POSTGRES_URL || MYSQL_URL || SQLITE_URL);
 
-
 module.exports = {
   command: 'creact',
   aliases: ['cmdreact'],
@@ -16,14 +14,13 @@ module.exports = {
   description: 'Toggle command reactions',
   usage: '.creact on/off',
   ownerOnly: true,
-  
-  async handler(sock, message, args, context) {
-    const { chatId, channelInfo } = context;
-    
+
+  async handler(sock, message, args, context = {}) {
+    const chatId = context.chatId || message.key.remoteJid;
+
     if (!args[0] || !['on', 'off'].includes(args[0])) {
       await sock.sendMessage(chatId, { 
-        text: `*Usage:*\n.creact on/off\n\nStorage: ${HAS_DB ? 'Database' : 'File System'}`,
-        ...channelInfo
+        text: `*Usage:*\n.creact on/off\n\nStorage: ${HAS_DB ? 'Database' : 'File System'}`
       }, { quoted: message });
       return;
     }
@@ -31,17 +28,13 @@ module.exports = {
     if (args[0] === 'on') {
       await setCommandReactState(true);
       await sock.sendMessage(chatId, { 
-        text: `*✅ Command reactions enabled*\n\nStorage: ${HAS_DB ? 'Database' : 'File System'}`,
-        ...channelInfo
+        text: `*✅ Command reactions enabled*\n\nStorage: ${HAS_DB ? 'Database' : 'File System'}`
       }, { quoted: message });
     } else if (args[0] === 'off') {
       await setCommandReactState(false);
       await sock.sendMessage(chatId, { 
-        text: `*❌ Command reactions disabled*\n\nStorage: ${HAS_DB ? 'Database' : 'File System'}`,
-        ...channelInfo
+        text: `*❌ Command reactions disabled*\n\nStorage: ${HAS_DB ? 'Database' : 'File System'}`
       }, { quoted: message });
     }
   }
 };
-
-  
