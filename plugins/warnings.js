@@ -32,14 +32,13 @@ module.exports = {
   groupOnly: true,
   
   async handler(sock, message, args, context) {
-    const { chatId, channelInfo } = context;
+    const chatId = context.chatId || message.key.remoteJid;
     
     const mentionedJidList = message.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
     
     if (mentionedJidList.length === 0) {
       await sock.sendMessage(chatId, { 
         text: 'Please mention a user to check warnings.',
-        ...channelInfo
       }, { quoted: message });
       return;
     }
@@ -51,7 +50,6 @@ module.exports = {
     await sock.sendMessage(chatId, { 
       text: `@${userToCheck.split('@')[0]} has ${warningCount} warning(s).\n\nStorage: ${HAS_DB ? 'Database' : 'File System'}`,
       mentions: [userToCheck],
-      ...channelInfo
     }, { quoted: message });
   }
 };
