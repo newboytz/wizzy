@@ -1,86 +1,81 @@
-const isAdmin = require('../lib/isAdmin');
-const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const fs = require('fs');
-const path = require('path');
+const isAdmin = require('../lib/isAdmin');  
+const { downloadContentFromMessage } = require('@whiskeysockets/baileys');  
+const fs = require('fs');  
+const path = require('path');  
 
-async function downloadMediaMessage(message, mediaType) {
-  const stream = await downloadContentFromMessage(message, mediaType);
-  let buffer = Buffer.from([]);
-  for await (const chunk of stream) {
-    buffer = Buffer.concat([buffer, chunk]);
-  }
-  const filePath = path.join(__dirname, '../temp/', `${Date.now()}.${mediaType}`);
-  fs.writeFileSync(filePath, buffer);
-  return filePath;
-}
+async function downloadMediaMessage(message, mediaType) {  
+  const stream = await downloadContentFromMessage(message, mediaType);  
+  let buffer = Buffer.from([]);  
+  for await (const chunk of stream) {  
+    buffer = Buffer.concat([buffer, chunk]);  
+  }  
+  const filePath = path.join(__dirname, '../temp/', `${Date.now()}.${mediaType}`);  
+  fs.writeFileSync(filePath, buffer);  
+  return filePath;  
+}  
 
-module.exports = {
-  command: 'tag',
-  aliases: ['tagall', 'hidetag'],
-  category: 'admin',
-  description: 'Tag all group members',
-  usage: '.tag [message] or reply to a message',
-  groupOnly: true,
-  adminOnly: true,
-  
-  async handler(sock, message, args, context) {
-    const { chatId, senderId, channelInfo, messageText } = context;
-    
-    const groupMetadata = await sock.groupMetadata(chatId);
-    const participants = groupMetadata.participants;
-    const mentionedJidList = participants.map(p => p.id);
+module.exports = {  
+  command: 'tag',  
+  aliases: ['tagall', 'hidetag'],  
+  category: 'admin',  
+  description: 'Tag all group members',  
+  usage: '.tag [message] or reply to a message',  
+  groupOnly: true,  
+  adminOnly: true,  
 
-    const replyMessage = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-    const tagText = args.join(' ');
+  async handler(sock, message, args, context) {  
+    const chatId = context.chatId || message.key.remoteJid;  
 
-    if (replyMessage) {
-      let messageContent = {};
+    const groupMetadata = await sock.groupMetadata(chatId);  
+    const participants = groupMetadata?.participants || [];  
+    const mentionedJidList = participants.map(p => p.id);  
 
-      if (replyMessage.imageMessage) {
-        const filePath = await downloadMediaMessage(replyMessage.imageMessage, 'image');
-        messageContent = {
-          image: { url: filePath },
-          caption: tagText || replyMessage.imageMessage.caption || '',
-          mentions: mentionedJidList,
-          ...channelInfo
-        };
-      }
-      else if (replyMessage.videoMessage) {
-        const filePath = await downloadMediaMessage(replyMessage.videoMessage, 'video');
-        messageContent = {
-          video: { url: filePath },
-          caption: tagText || replyMessage.videoMessage.caption || '',
-          mentions: mentionedJidList,
-          ...channelInfo
-        };
-      }
-      else if (replyMessage.conversation || replyMessage.extendedTextMessage) {
-        messageContent = {
-          text: replyMessage.conversation || replyMessage.extendedTextMessage.text,
-          mentions: mentionedJidList,
-          ...channelInfo
-        };
-      }
-      else if (replyMessage.documentMessage) {
-        const filePath = await downloadMediaMessage(replyMessage.documentMessage, 'document');
-        messageContent = {
-          document: { url: filePath },
-          fileName: replyMessage.documentMessage.fileName,
-          caption: tagText || '',
-          mentions: mentionedJidList,
-          ...channelInfo
-        };
-      }
+    const replyMessage = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;  
+    const tagText = args.join(' ') || "Tagged message";  
 
-      if (Object.keys(messageContent).length > 0) {
-        await sock.sendMessage(chatId, messageContent);
-      }
-    } else {
-      await sock.sendMessage(chatId, {
-        text: tagText || "Tagged message",
-        mentions: mentionedJidList,
-        ...channelInfo
-      });
-    }
-  }
+    let messageContent = {};  
+
+    if (replyMessage) {  
+      if (replyMessage.imageMessage) {  
+        const filePath = await downloadMediaMessage(replyMessage.imageMessage, 'image');  
+        messageContent = {  
+          image: { url: filePath },  
+          caption: tagText || replyMessage.imageMessage.caption || '',  
+          mentions: mentionedJidList  
+        };  
+      }  
+      else if (replyMessage.videoMessage) {  
+        const filePath = await downloadMediaMessage(replyMessage.videoMessage, 'video');  
+        messageContent = {  
+          video: { url: filePath },  
+          caption: tagText || replyMessage.videoMessage.caption || '',  
+          mentions: mentionedJidList  
+        };  
+      }  
+      else if (replyMessage.conversation || replyMessage.extendedTextMessage) {  
+        messageContent = {  
+          text: replyMessage.conversation || replyMessage.extendedTextMessage?.text || tagText,  
+          mentions: mentionedJidList  
+        };  
+      }  
+      else if (replyMessage.documentMessage) {  
+        const filePath = await downloadMediaMessage(replyMessage.documentMessage, 'document');  
+        messageContent = {  
+          document: { url: filePath },  
+          fileName: replyMessage.documentMessage.fileName,  
+          caption: tagText || '',  
+          mentions: mentionedJidList  
+        };  
+      }  
+    } else {  
+      messageContent = {  
+        text: tagText,  
+        mentions: mentionedJidList  
+      };  
+    }  
+
+    if (Object.keys(messageContent).length > 0) {  
+      await sock.sendMessage(chatId, messageContent);  
+    }  
+  }  
 };
