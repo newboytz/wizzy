@@ -8,7 +8,7 @@ module.exports = {
   usage: '.sora <prompt>',
   
   async handler(sock, message, args, context) {
-    const { chatId, channelInfo } = context;
+    const chatId = context.chatId || message.key.remoteJid;
     
     try {
       const quoted = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
@@ -18,7 +18,6 @@ module.exports = {
       if (!input) {
         await sock.sendMessage(chatId, { 
           text: 'Provide a prompt. Example: .sora anime girl with short blue hair',
-          ...channelInfo
         }, { quoted: message });
         return;
       }
@@ -35,14 +34,12 @@ module.exports = {
         video: { url: videoUrl },
         mimetype: 'video/mp4',
         caption: `Prompt: ${input}`,
-        ...channelInfo
       }, { quoted: message });
 
     } catch (error) {
       console.error('[SORA] error:', error?.message || error);
       await sock.sendMessage(chatId, { 
         text: 'Failed to generate video. Try a different prompt later.',
-        ...channelInfo
       }, { quoted: message });
     }
   }
