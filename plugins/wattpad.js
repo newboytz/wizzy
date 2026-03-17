@@ -1,5 +1,4 @@
 const Qasim = require('api-qasim');
-const { channelInfo } = require('../lib/messageConfig');
 
 module.exports = {
   command: 'wattpad',
@@ -16,7 +15,6 @@ module.exports = {
       return await sock.sendMessage(chatId, {
         text: '*Please provide a query (e.g., story title, author, or tag).*' +
               `\nExample: .wattpad The Hunger Games`,
-        ...channelInfo
       }, { quoted: message });
     }
 
@@ -39,13 +37,11 @@ module.exports = {
 
       await sock.sendMessage(chatId, {
         text: `*Search Results For "${query}":*\n\n${formattedResults}`,
-        ...channelInfo
       }, { quoted: message });
 
     } catch (error) {
       await sock.sendMessage(chatId, {
         text: `❌ An error occurred: ${error.message || error}`,
-        ...channelInfo
       }, { quoted: message });
     }
   }
