@@ -19,7 +19,6 @@ module.exports = {
     if (!userToWaste) {
       return await sock.sendMessage(chatId, {
         text: 'Please mention someone or reply to their message to waste them!',
-        ...channelInfo
       }, { quoted: message });
     }
 
@@ -38,14 +37,12 @@ module.exports = {
         image: Buffer.from(wastedResponse.data),
         caption: `⚰️ *Wasted* : ${userToWaste.split('@')[0]} 💀\n\nRest in pieces!`,
         mentions: [userToWaste],
-        ...channelInfo
       }, { quoted: message });
 
     } catch (error) {
       console.error('Error in wasted command:', error);
       await sock.sendMessage(chatId, {
         text: '❌ Failed to create wasted image! Try again later.',
-        ...channelInfo
       }, { quoted: message });
     }
   }
