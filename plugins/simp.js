@@ -37,33 +37,16 @@ module.exports = {
             const imageBuffer = await response.buffer();
 
             await sock.sendMessage(chatId, {
-                image: imageBuffer,
-                caption: '*your religion is simping*',
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363319098372999@newsletter',
-                        newsletterName: 'MEGA MD',
-                        serverMessageId: -1
-                    }
-                }
-            }, { quoted: message });
+    image: imageBuffer,
+    caption: '*your religion is simping*'
+}, { quoted: message });
 
         } catch (error) {
             console.error('Simp Command Error:', error);
             await sock.sendMessage(chatId, { 
                 text: '❌ Sorry, I couldn\'t generate the simp card. Please try again later!',
-                contextInfo: {
-                    forwardingScore: 1,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363319098372999@newsletter',
-                        newsletterName: 'MEGA MD',
-                        serverMessageId: -1
-                    }
-                }
             }, { quoted: message });
         }
     }
 };
+            
