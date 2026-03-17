@@ -99,3 +99,4 @@ module.exports = {
       await sock.sendMessage(chatId, { text: '❌ Audio processing failed. Make sure ffmpeg is installed.' }, { quoted: message });
     }}
 };
+
