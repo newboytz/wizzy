@@ -8,7 +8,7 @@ module.exports = {
   usage: '.spotify <song/artist/keywords>',
   
   async handler(sock, message, args, context) {
-    const { chatId, channelInfo } = context;
+    const chatId = context.chatId || message.key.remoteJid;
     
     try {
       const query = args.join(' ');
@@ -16,7 +16,6 @@ module.exports = {
       if (!query) {
         await sock.sendMessage(chatId, { 
           text: 'Usage: .spotify <song/artist/keywords>\nExample: .spotify con calma',
-          ...channelInfo
         }, { quoted: message });
         return;
       }
@@ -34,7 +33,6 @@ module.exports = {
       if (!audioUrl) {
         await sock.sendMessage(chatId, { 
           text: 'No downloadable audio found for this query.',
-          ...channelInfo
         }, { quoted: message });
         return;
       }
@@ -45,12 +43,10 @@ module.exports = {
         await sock.sendMessage(chatId, { 
           image: { url: r.thumbnails }, 
           caption,
-          ...channelInfo
         }, { quoted: message });
       } else if (caption) {
         await sock.sendMessage(chatId, { 
           text: caption,
-          ...channelInfo
         }, { quoted: message });
       }
       
@@ -58,14 +54,12 @@ module.exports = {
         audio: { url: audioUrl },
         mimetype: 'audio/mpeg',
         fileName: `${(r.title || r.name || 'track').replace(/[\\/:*?"<>|]/g, '')}.mp3`,
-        ...channelInfo
       }, { quoted: message });
 
     } catch (error) {
       console.error('[SPOTIFY] error:', error?.message || error);
       await sock.sendMessage(chatId, { 
         text: 'Failed to fetch Spotify audio. Try another query later.',
-        ...channelInfo
       }, { quoted: message });
     }
   }
