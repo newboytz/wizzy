@@ -40,48 +40,49 @@ module.exports = {
   description: 'Unban a user from using the bot',
   usage: '.unban [@user] or reply to message',
   ownerOnly: false,
-  
-  async handler(sock, message, args, context) {
-    const { chatId, senderId, isGroup, channelInfo, senderIsOwnerOrSudo, isSenderAdmin, isBotAdmin } = context;
-    
+
+  async handler(sock, message, args, context = {}) {
+    const chatId = context.chatId || message.key.remoteJid;
+    const senderId = context.senderId;
+    const isGroup = context.isGroup;
+    const senderIsOwnerOrSudo = context.senderIsOwnerOrSudo;
+    const isSenderAdmin = context.isSenderAdmin;
+    const isBotAdmin = context.isBotAdmin;
+
     if (isGroup) {
       if (!isBotAdmin) {
         await sock.sendMessage(chatId, { 
-          text: 'Please make the bot an admin to use .unban', 
-          ...channelInfo 
+          text: 'Please make the bot an admin to use .unban'
         }, { quoted: message });
         return;
       }
       if (!isSenderAdmin && !message.key.fromMe && !senderIsOwnerOrSudo) {
         await sock.sendMessage(chatId, { 
-          text: 'Only group admins can use .unban', 
-          ...channelInfo 
+          text: 'Only group admins can use .unban'
         }, { quoted: message });
         return;
       }
     } else {
       if (!message.key.fromMe && !senderIsOwnerOrSudo) {
         await sock.sendMessage(chatId, { 
-          text: 'Only owner/sudo can use .unban in private chat', 
-          ...channelInfo 
+          text: 'Only owner/sudo can use .unban in private chat'
         }, { quoted: message });
         return;
       }
     }
-    
+
     let userToUnban;
-    
+
     if (message.message?.extendedTextMessage?.contextInfo?.mentionedJid?.length > 0) {
       userToUnban = message.message.extendedTextMessage.contextInfo.mentionedJid[0];
     }
     else if (message.message?.extendedTextMessage?.contextInfo?.participant) {
       userToUnban = message.message.extendedTextMessage.contextInfo.participant;
     }
-    
+
     if (!userToUnban) {
       await sock.sendMessage(chatId, { 
-        text: 'Please mention the user or reply to their message to unban!', 
-        ...channelInfo 
+        text: 'Please mention the user or reply to their message to unban!'
       }, { quoted: message });
       return;
     }
@@ -89,31 +90,26 @@ module.exports = {
     try {
       const bannedUsers = await getBannedUsers();
       const index = bannedUsers.indexOf(userToUnban);
-      
+
       if (index > -1) {
         bannedUsers.splice(index, 1);
         await saveBannedUsers(bannedUsers);
-        
+
         await sock.sendMessage(chatId, { 
           text: `✅ Successfully unbanned @${userToUnban.split('@')[0]}!\n\nStorage: ${HAS_DB ? 'Database' : 'File System'}`,
-          mentions: [userToUnban],
-          ...channelInfo 
+          mentions: [userToUnban]
         }, { quoted: message });
       } else {
         await sock.sendMessage(chatId, { 
           text: `@${userToUnban.split('@')[0]} is not banned!`,
-          mentions: [userToUnban],
-          ...channelInfo 
+          mentions: [userToUnban]
         }, { quoted: message });
       }
     } catch (error) {
       console.error('Error in unban command:', error);
       await sock.sendMessage(chatId, { 
-        text: 'Failed to unban user!', 
-        ...channelInfo 
+        text: 'Failed to unban user!'
       }, { quoted: message });
     }
   }
 };
-
-
