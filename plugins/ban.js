@@ -47,7 +47,6 @@ module.exports = {
 
     async handler(sock, message, args, context = {}) {
         const chatId = context.chatId || message.key.remoteJid;
-        const channelInfo = context.channelInfo || {};
         const isGroup = context.isGroup;
 
         let userToBan;
@@ -61,7 +60,6 @@ module.exports = {
         if (!userToBan) {
             await sock.sendMessage(chatId, { 
                 text: '❌ *Please mention a user or reply to their message*\n\nUsage: `.ban @user` or reply with `.ban`',
-                ...channelInfo 
             }, { quoted: message });
             return;
         }
@@ -70,8 +68,7 @@ module.exports = {
             const botId = sock.user.id.split(':')[0] + '@s.whatsapp.net';
             if (userToBan === botId || userToBan === botId.replace('@s.whatsapp.net', '@lid')) {
                 await sock.sendMessage(chatId, { 
-                    text: '❌ *Cannot ban the bot account*',
-                    ...channelInfo 
+                    text: '❌ *Cannot ban the bot account*', 
                 }, { quoted: message });
                 return;
             }
@@ -87,21 +84,18 @@ module.exports = {
                 await sock.sendMessage(chatId, { 
                     text: `🚫 *User Banned Successfully!*\n\n@${userToBan.split('@')[0]} has been banned from using the bot.\n\n` +
                           `*Storage:* ${HAS_DB ? 'Database' : 'File System'}`,
-                    mentions: [userToBan],
-                    ...channelInfo 
+                    mentions: [userToBan], 
                 }, { quoted: message });
             } else {
                 await sock.sendMessage(chatId, { 
                     text: `⚠️ *Already Banned*\n\n@${userToBan.split('@')[0]} is already banned!`,
-                    mentions: [userToBan],
-                    ...channelInfo 
+                    mentions: [userToBan], 
                 }, { quoted: message });
             }
         } catch (error) {
             console.error('Error in ban command:', error);
             await sock.sendMessage(chatId, { 
-                text: '❌ *Failed to ban user!*\n\nPlease try again.',
-                ...channelInfo 
+                text: '❌ *Failed to ban user!*\n\nPlease try again.', 
             }, { quoted: message });
         }
     }
