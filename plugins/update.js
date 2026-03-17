@@ -183,12 +183,11 @@ module.exports = {
   ownerOnly: true,
   
   async handler(sock, message, args, context) {
-    const { chatId, channelInfo } = context;
+    const chatId = context.chatId || message.key.remoteJid;
     
     try {
       await sock.sendMessage(chatId, { 
         text: '🔄 Updating the bot, please wait…',
-        ...channelInfo
       }, { quoted: message });
       
       let changesSummary = '';
@@ -243,7 +242,6 @@ module.exports = {
       
       await sock.sendMessage(chatId, { 
         text: changesSummary + '\n\n♻️ Restarting bot...',
-        ...channelInfo
       }, { quoted: message });
       
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -253,7 +251,6 @@ module.exports = {
       console.error('Update failed:', err);
       await sock.sendMessage(chatId, { 
         text: `❌ Update failed:\n${String(err.message || err)}`,
-        ...channelInfo
       }, { quoted: message });
     }
   }
