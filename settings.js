@@ -19,7 +19,7 @@ const settings = {
   
   description: process.env.DESCRIPTION || "This is a bot for managing group commands and automating tasks.",
   version: "5.2.0",
-  updateZipUrl: process.env.UPDATE_URL || "https://github.com/GlobalTechInfo/MEGA-MD/archive/refs/heads/main.zip",
+  updateZipUrl: process.env.UPDATE_URL || "hlhttps://github.com/newboytz/wizzy/archive/refs/heads/main.zip",
   channelLink: process.env.CHANNEL_LINK || "https://whatsapp.com/channel/0029VbBQOfA17EmuEf0t8N1S",
   ytch: process.env.YT_CHANNEL || "𝐓𝐄𝐂𝐇 𝐖𝐎𝐑𝐋𝐃 🌍"
 };
