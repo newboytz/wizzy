@@ -6,7 +6,7 @@ const settings = {
   
   packname: process.env.PACKNAME || 'SASAMPA-MD',
   author: process.env.AUTHOR || 'wizzy',
-  timeZone: process.env.TIMEZONE || 'Tanzaia',
+  timeZone: process.env.TIMEZONE || 'Africa/Tabora',
   botName: process.env.BOT_NAME || "SASAMPA-MD",
   botOwner: process.env.BOT_OWNER || 'J_Wizzy',
   ownerNumber: process.env.OWNER_NUMBER || '255775923311',
