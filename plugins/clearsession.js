@@ -2,17 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const isOwnerOrSudo = require('../lib/isOwner');
 
-const channelInfo = {
-  contextInfo: {
-    forwardingScore: 999,
-    isForwarded: true,
-    forwardedNewsletterMessageInfo: {
-      newsletterJid: '120363319098372999@newsletter',
-      newsletterName: 'MEGA MD',
-      serverMessageId: -1
-    }
-  }
-};
 
 module.exports = {
   command: 'clearsession',
@@ -28,19 +17,19 @@ module.exports = {
       const isOwner = await isOwnerOrSudo(senderId, sock, chatId);
 
       if (!message.key.fromMe && !isOwner) {
-        return await sock.sendMessage(chatId, { text: '*This command can only be used by the owner!*', ...channelInfo });
+        return await sock.sendMessage(chatId, { text: '*This command can only be used by the owner!*', });
       }
 
       const sessionDir = path.join(__dirname, '../session');
       if (!fs.existsSync(sessionDir)) {
-        return await sock.sendMessage(chatId, { text: '*Session directory not found!*', ...channelInfo });
+        return await sock.sendMessage(chatId, { text: '*Session directory not found!*', });
       }
 
       let filesCleared = 0;
       let errors = 0;
       let errorDetails = [];
 
-      await sock.sendMessage(chatId, { text: '🔍 Optimizing session files for better performance...', ...channelInfo });
+      await sock.sendMessage(chatId, { text: '🔍 Optimizing session files for better performance...', });
 
       const files = fs.readdirSync(sessionDir);
       let appStateSyncCount = 0;
@@ -69,10 +58,10 @@ module.exports = {
                       `• Pre-key files: ${preKeyCount}\n` +
                       (errors > 0 ? `\n⚠️ Errors encountered: ${errors}\n${errorDetails.join('\n')}` : '');
 
-      await sock.sendMessage(chatId, { text: msgText, ...channelInfo });
+      await sock.sendMessage(chatId, { text: msgText, });
 
     } catch {
-      await sock.sendMessage(chatId, { text: '❌ Failed to clear session files!', ...channelInfo });
+      await sock.sendMessage(chatId, { text: '❌ Failed to clear session files!', });
     }
   }
 };
