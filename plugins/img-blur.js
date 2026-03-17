@@ -35,18 +35,9 @@ module.exports = {
         .toBuffer();
 
       await sock.sendMessage(chatId, {
-        image: blurredImage,
-        caption: '✨ *Image Blurred Successfully!*',
-        contextInfo: {
-          forwardingScore: 1,
-          isForwarded: true,
-          forwardedNewsletterMessageInfo: {
-            newsletterJid: '120363319098372999@newsletter',
-            newsletterName: 'MEGA MD',
-            serverMessageId: -1
-          }
-        }
-      }, { quoted: message });
+  image: blurredImage,
+  caption: '✨ *Image Blurred Successfully!*'
+}, { quoted: message });
 
     } catch (error) {
       console.error('Error in blur command:', error);
