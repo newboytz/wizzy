@@ -29,17 +29,7 @@ async function handleJoinEvent(sock, id, participants) {
   const groupName = groupMetadata.subject;
   const groupDesc = groupMetadata.desc || 'No description available';
 
-  const channelInfo = {
-    contextInfo: {
-      forwardingScore: 1,
-      isForwarded: true,
-      forwardedNewsletterMessageInfo: {
-        newsletterJid: '120363319098372999@newsletter',
-        newsletterName: 'MEGA MD',
-        serverMessageId: -1
-      }
-    }
-  };
+
 
   for (const participant of participants) {
     try {
@@ -104,7 +94,6 @@ async function handleJoinEvent(sock, id, participants) {
             image: imageBuffer,
             caption: finalMessage,
             mentions: [participantString],
-            ...channelInfo
           });
           continue;
         }
@@ -115,7 +104,6 @@ async function handleJoinEvent(sock, id, participants) {
       await sock.sendMessage(id, {
         text: finalMessage,
         mentions: [participantString],
-        ...channelInfo
       });
     } catch (error) {
       console.error('Error sending welcome message:', error);
@@ -135,7 +123,6 @@ async function handleJoinEvent(sock, id, participants) {
       await sock.sendMessage(id, {
         text: fallbackMessage,
         mentions: [participantString],
-        ...channelInfo
       });
     }
   }
