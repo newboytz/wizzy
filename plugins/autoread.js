@@ -47,12 +47,12 @@ async function isAutoreadEnabled() {
 
 function isBotMentionedInMessage(message, botNumber) {
     if (!message.message) return false;
-    
+
     const messageTypes = [
         'extendedTextMessage', 'imageMessage', 'videoMessage', 'stickerMessage',
         'documentMessage', 'audioMessage', 'contactMessage', 'locationMessage'
     ];
-    
+
     for (const type of messageTypes) {
         if (message.message[type]?.contextInfo?.mentionedJid) {
             const mentionedJid = message.message[type].contextInfo.mentionedJid;
@@ -61,26 +61,26 @@ function isBotMentionedInMessage(message, botNumber) {
             }
         }
     }
-    
+
     const textContent = 
         message.message.conversation || 
         message.message.extendedTextMessage?.text ||
         message.message.imageMessage?.caption ||
         message.message.videoMessage?.caption || '';
-    
+
     if (textContent) {
         const botUsername = botNumber.split('@')[0];
         if (textContent.includes(`@${botUsername}`)) {
             return true;
         }
-        
+
         const botNames = [global.botname?.toLowerCase(), 'bot', 'mega', 'mega bot'];
         const words = textContent.toLowerCase().split(/\s+/);
         if (botNames.some(name => words.includes(name))) {
             return true;
         }
     }
-    
+
     return false;
 }
 
@@ -97,7 +97,7 @@ async function handleAutoread(sock, message) {
     const enabled = await isAutoreadEnabled();
     if (enabled) {
         const botNumber = sock.user.id.split(':')[0] + '@s.whatsapp.net';
-        
+
         const isBotMentioned = isBotMentionedInMessage(message, botNumber);
         if (isBotMentioned) {
             return false;
@@ -129,16 +129,15 @@ module.exports = {
 
     async handler(sock, message, args, context = {}) {
         const chatId = context.chatId || message.key.remoteJid;
-        const channelInfo = context.channelInfo || {};
-        
+
         try {
             const config = await initConfig();
             const action = args[0]?.toLowerCase();
-            
+
             if (!action) {
                 const ghostMode = await store.getSetting('global', 'stealthMode');
                 const ghostActive = ghostMode && ghostMode.enabled;
-                
+
                 await sock.sendMessage(chatId, {
                     text: `*📖 AUTOREAD STATUS*\n\n` +
                           `*Current Status:* ${config.enabled ? '✅ Enabled' : '❌ Disabled'}\n` +
@@ -150,7 +149,7 @@ module.exports = {
                           `*What it does:*\n` +
                           `When enabled, the bot automatically marks all messages as read (blue ticks).\n\n` +
                           `*Note:* Ghost mode takes priority over autoread. If ghost mode is active, no read receipts will be sent.`,
-                    ...channelInfo
+                        
                 }, { quoted: message });
                 return;
             }
@@ -159,49 +158,43 @@ module.exports = {
                 if (config.enabled) {
                     await sock.sendMessage(chatId, {
                         text: '⚠️ *Autoread is already enabled*',
-                        ...channelInfo
                     }, { quoted: message });
                     return;
                 }
                 config.enabled = true;
                 await saveConfig(config);
-                
+
                 const ghostMode = await store.getSetting('global', 'stealthMode');
                 const ghostActive = ghostMode && ghostMode.enabled;
-                
+
                 await sock.sendMessage(chatId, {
                     text: `✅ *Auto-read enabled!*\n\nAll messages will now be automatically marked as read.${ghostActive ? '\n\n⚠️ *Note:* Ghost mode is currently active and will override autoread.' : ''}`,
-                    ...channelInfo
                 }, { quoted: message });
-                
+
             } else if (action === 'off' || action === 'disable') {
                 if (!config.enabled) {
                     await sock.sendMessage(chatId, {
                         text: '⚠️ *Autoread is already disabled*',
-                        ...channelInfo
                     }, { quoted: message });
                     return;
                 }
                 config.enabled = false;
                 await saveConfig(config);
-                
+
                 await sock.sendMessage(chatId, {
                     text: '❌ *Auto-read disabled!*\n\nMessages will no longer be automatically marked as read.',
-                    ...channelInfo
                 }, { quoted: message });
-                
+
             } else {
                 await sock.sendMessage(chatId, {
                     text: '❌ *Invalid option!*\n\nUse: `.autoread on/off`',
-                    ...channelInfo
                 }, { quoted: message });
             }
-            
+
         } catch (error) {
             console.error('Error in autoread command:', error);
             await sock.sendMessage(chatId, {
                 text: '❌ *Error processing command!*',
-                ...channelInfo
             }, { quoted: message });
         }
     },
@@ -210,5 +203,3 @@ module.exports = {
     isBotMentionedInMessage,
     handleAutoread
 };
-
-
