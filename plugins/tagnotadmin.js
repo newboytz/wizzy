@@ -8,7 +8,7 @@ module.exports = {
   adminOnly: true,
   
   async handler(sock, message, args, context) {
-    const { chatId, channelInfo } = context;
+    const chatId = context.chatId || message.key.remoteJid;
     
     try {
       const groupMetadata = await sock.groupMetadata(chatId);
@@ -19,7 +19,6 @@ module.exports = {
       if (nonAdmins.length === 0) {
         await sock.sendMessage(chatId, { 
           text: 'No non-admin members to tag.',
-          ...channelInfo
         }, { quoted: message });
         return;
       }
@@ -32,14 +31,12 @@ module.exports = {
       await sock.sendMessage(chatId, { 
         text, 
         mentions: nonAdmins,
-        ...channelInfo
       }, { quoted: message });
       
     } catch (error) {
       console.error('Error in tagnotadmin command:', error);
       await sock.sendMessage(chatId, { 
         text: 'Failed to tag non-admin members.',
-        ...channelInfo
       }, { quoted: message });
     }
   }
