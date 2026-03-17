@@ -67,7 +67,7 @@ module.exports = {
   usage: '.crop (reply to image/video/sticker)',
   
   async handler(sock, message, args, context) {
-    const { chatId, channelInfo } = context;
+    const chatId = context.chatId || message.key.remoteJid;
     const messageToQuote = message;
     let targetMessage = message;
 
@@ -185,7 +185,6 @@ module.exports = {
 
       await sock.sendMessage(chatId, { 
         sticker: finalBuffer,
-        ...channelInfo
       }, { quoted: messageToQuote });
 
       try {
@@ -199,7 +198,6 @@ module.exports = {
       console.error('Error in stickercrop command:', error);
       await sock.sendMessage(chatId, { 
         text: 'Failed to crop sticker! Try with an image.',
-        ...channelInfo
       }, { quoted: messageToQuote });
     }
   },
