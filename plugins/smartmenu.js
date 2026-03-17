@@ -132,18 +132,9 @@ module.exports = {
       menuText += `⁠└────────────────`;
 
       const messageOptions = {
-        image: thumbnail,
-        caption: menuText,
-        contextInfo: {
-          forwardingScore: 1,
-          isForwarded: true,
-          forwardedNewsletterMessageInfo: {
-            newsletterJid: '120363319098372999@newsletter',
-            newsletterName: settings.botName || 'MEGA MD',
-            serverMessageId: -1
-          }
-        }
-      };
+  image: thumbnail,
+  caption: menuText
+};
 
       await sock.sendMessage(chatId, messageOptions, { quoted: message });
 
