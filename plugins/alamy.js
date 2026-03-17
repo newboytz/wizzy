@@ -1,7 +1,7 @@
-/*****************************************************************************
+ /*****************************************************************************
  *                                                                           *
  *                     Developed By Qasim Ali                                *
- *                                                                           *
+ *                                                                          *
  *  🌐  GitHub   : https://github.com/GlobalTechInfo                         *
  *  ▶️  YouTube  : https://youtube.com/@GlobalTechInfo                       *
  *  💬  WhatsApp : https://whatsapp.com/channel/0029VagJIAr3bbVBCpEkAM07     *
