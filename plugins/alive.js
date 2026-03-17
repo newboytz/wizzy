@@ -53,7 +53,7 @@ module.exports = {
 
     } catch (error) {
       console.error('Error in alive command:', error);
-      await sock.sendMessage(chatId, { text: '✅ Bot is alive and running!' }, { quoted: message });
+      await sock.sendMessage(chatId, { text: '✅ Bot is alive and 💨!' }, { quoted: message });
     }
   }
 };
