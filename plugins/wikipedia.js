@@ -15,7 +15,6 @@ module.exports = {
     if (!query) {
       return await sock.sendMessage(chatId, {
         text: "*Enter what you want to search for on Wikipedia.*\nExample: .wiki Pakistan",
-        ...channelInfo
       }, { quoted: message });
     }
 
@@ -34,19 +33,16 @@ module.exports = {
       if (data.extract) {
         await sock.sendMessage(chatId, {
           text: `▢ *Wikipedia*\n\n‣ Search: ${data.title}\n\n${data.extract}\n\nRead more: ${data.content_urls.desktop.page}`,
-          ...channelInfo
         }, { quoted: message });
       } else {
         await sock.sendMessage(chatId, {
           text: "⚠️ No results found.",
-          ...channelInfo
         }, { quoted: message });
       }
     } catch (e) {
       console.error('Wikipedia plugin error:', e.message || e);
       await sock.sendMessage(chatId, {
         text: "⚠️ No results found or Wikipedia blocked the request.",
-        ...channelInfo
       }, { quoted: message });
     }
   }
