@@ -21,17 +21,7 @@ if (!HAS_DB && !fs.existsSync(configPath)) {
     }, null, 2));
 }
 
-const channelInfo = {
-    contextInfo: {
-        forwardingScore: 1,
-        isForwarded: true,
-        forwardedNewsletterMessageInfo: {
-            newsletterJid: '120363319098372999@newsletter',
-            newsletterName: 'MEGA MD',
-            serverMessageId: -1
-        }
-    }
-};
+
 
 async function readConfig() {
     try {
@@ -201,7 +191,6 @@ module.exports = {
                           `• \`.autostatus off\` - Disable auto view\n` +
                           `• \`.autostatus react on\` - Enable reaction\n` +
                           `• \`.autostatus react off\` - Disable reaction`,
-                    ...channelInfo
                 }, { quoted: message });
                 return;
             }
@@ -215,7 +204,6 @@ module.exports = {
                 await sock.sendMessage(chatId, { 
                     text: '✅ *Auto status view enabled!*\n\n' +
                           'Bot will now automatically view all contact statuses.',
-                    ...channelInfo
                 }, { quoted: message });
                 
             } else if (command === 'off') {
@@ -225,7 +213,6 @@ module.exports = {
                 await sock.sendMessage(chatId, { 
                     text: '❌ *Auto status view disabled!*\n\n' +
                           'Bot will no longer automatically view statuses.',
-                    ...channelInfo
                 }, { quoted: message });
                 
             } else if (command === 'react') {
@@ -233,7 +220,6 @@ module.exports = {
                     await sock.sendMessage(chatId, { 
                         text: '❌ *Please specify on/off for reactions!*\n\n' +
                               'Usage: `.autostatus react on/off`',
-                        ...channelInfo
                     }, { quoted: message });
                     return;
                 }
@@ -247,7 +233,6 @@ module.exports = {
                     await sock.sendMessage(chatId, { 
                         text: '💫 *Status reactions enabled!*\n\n' +
                               'Bot will now react to status updates with 💚',
-                        ...channelInfo
                     }, { quoted: message });
                     
                 } else if (reactCommand === 'off') {
@@ -257,14 +242,12 @@ module.exports = {
                     await sock.sendMessage(chatId, { 
                         text: '❌ *Status reactions disabled!*\n\n' +
                               'Bot will no longer react to status updates.',
-                        ...channelInfo
                     }, { quoted: message });
                     
                 } else {
                     await sock.sendMessage(chatId, { 
                         text: '❌ *Invalid reaction command!*\n\n' +
                               'Usage: `.autostatus react on/off`',
-                        ...channelInfo
                     }, { quoted: message });
                 }
                 
@@ -274,7 +257,6 @@ module.exports = {
                           '*Usage:*\n' +
                           '• `.autostatus on/off` - Enable/disable auto view\n' +
                           '• `.autostatus react on/off` - Enable/disable reactions',
-                    ...channelInfo
                 }, { quoted: message });
             }
 
@@ -283,7 +265,6 @@ module.exports = {
             await sock.sendMessage(chatId, { 
                 text: '❌ *Error occurred while managing auto status!*\n\n' +
                       `Error: ${error.message}`,
-                ...channelInfo
             }, { quoted: message });
         }
     },
@@ -295,3 +276,4 @@ module.exports = {
     readConfig,
     writeConfig
 };
+            
