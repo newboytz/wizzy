@@ -8,19 +8,17 @@ module.exports = {
   adminOnly: true,
   
   async handler(sock, message, args, context) {
-    const { chatId, channelInfo } = context;
+    const chatId = context.chatId || message.key.remoteJid;
     
     try {
       await sock.groupSettingUpdate(chatId, 'not_announcement');
       await sock.sendMessage(chatId, { 
         text: 'The group has been unmuted.',
-        ...channelInfo
       }, { quoted: message });
     } catch (error) {
       console.error('Error unmuting group:', error);
       await sock.sendMessage(chatId, { 
         text: 'Failed to unmute the group.',
-        ...channelInfo
       }, { quoted: message });
     }
   }
