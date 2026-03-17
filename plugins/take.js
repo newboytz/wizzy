@@ -12,7 +12,7 @@ module.exports = {
   usage: '.take <packname> (reply to sticker)',
   
   async handler(sock, message, args, context) {
-    const { chatId, channelInfo } = context;
+    const chatId = context.chatId || message.key.remoteJid;
     
     try {
       const quotedMessage = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
@@ -20,7 +20,6 @@ module.exports = {
       if (!quotedMessage?.stickerMessage) {
         await sock.sendMessage(chatId, { 
           text: '❌ Reply to a sticker with .take <packname>',
-          ...channelInfo
         }, { quoted: message });
         return;
       }
@@ -45,7 +44,6 @@ module.exports = {
         if (!stickerBuffer) {
           await sock.sendMessage(chatId, { 
             text: '❌ Failed to download sticker',
-            ...channelInfo
           }, { quoted: message });
           return;
         }
@@ -70,7 +68,6 @@ module.exports = {
 
         await sock.sendMessage(chatId, {
           sticker: finalBuffer,
-          ...channelInfo
         }, {
           quoted: message
         });
@@ -79,7 +76,6 @@ module.exports = {
         console.error('Sticker processing error:', error);
         await sock.sendMessage(chatId, { 
           text: '❌ Error processing sticker',
-          ...channelInfo
         }, { quoted: message });
       }
 
@@ -87,7 +83,6 @@ module.exports = {
       console.error('Error in take command:', error);
       await sock.sendMessage(chatId, { 
         text: '❌ Error processing command',
-        ...channelInfo
       }, { quoted: message });
     }
   }
