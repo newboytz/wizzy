@@ -14,7 +14,7 @@ module.exports = {
   usage: '.sticker2 (reply to image/video or send with caption)',
   
   async handler(sock, message, args, context) {
-    const { chatId, channelInfo } = context;
+    const chatId = context.chatId || message.key.remoteJid;
     const messageToQuote = message;
     let targetMessage = message;
 
@@ -35,7 +35,6 @@ module.exports = {
     if (!mediaMessage) {
       await sock.sendMessage(chatId, { 
         text: 'Please reply to an image/video with .sticker2, or send an image/video with .sticker2 as the caption.',
-        ...channelInfo
       }, { quoted: messageToQuote });
       return;
     }
@@ -49,7 +48,6 @@ module.exports = {
       if (!mediaBuffer) {
         await sock.sendMessage(chatId, { 
           text: 'Failed to download media. Please try again.',
-          ...channelInfo
         }, { quoted: messageToQuote });
         return;
       }
@@ -148,7 +146,6 @@ module.exports = {
 
       await sock.sendMessage(chatId, { 
         sticker: finalBuffer,
-        ...channelInfo
       }, { quoted: messageToQuote });
 
       try {
@@ -162,7 +159,6 @@ module.exports = {
       console.error('Error in sticker command:', error);
       await sock.sendMessage(chatId, { 
         text: 'Failed to create sticker! Try again later.',
-        ...channelInfo
       }, { quoted: messageToQuote });
     }
   }
