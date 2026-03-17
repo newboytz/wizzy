@@ -8,7 +8,8 @@ module.exports = {
   usage: '.tiktok <TikTok URL>',
 
   async handler(sock, message, args, context) {
-    const { chatId, channelInfo, rawText } = context;
+    const chatId = context.chatId || message.key.remoteJid;
+    const rawText = context.rawText || '';
     
     const prefix = rawText.match(/^[.!#]/)?.[0] || '.';
     const commandPart = rawText.slice(prefix.length).trim();
