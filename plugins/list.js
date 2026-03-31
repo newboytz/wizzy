@@ -236,6 +236,7 @@ module.exports = {
       title: settings.botName,
       prefix,
       info: {
+        wizzy: setting.wizzyBot.
         bot: settings.botName,
         prefix: settings.prefixes.join(', '),
         total: commandHandler.commands.size,
