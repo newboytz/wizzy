@@ -3,7 +3,8 @@ require('dotenv').config();
 const settings = {
   // Array fallback: splits string by comma, or uses default array
   prefixes: process.env.PREFIXES ? process.env.PREFIXES.split(',') : ['.', '!', '/', '#'],
-  
+
+  wizzyBot: process.env.WIZZY_BOT || 'SASAPMA-MD',
   packname: process.env.PACKNAME || 'SASAMPA-MD',
   author: process.env.AUTHOR || 'wizzy',
   timeZone: process.env.TIMEZONE || 'Africa/Dar_es_Salaam',
